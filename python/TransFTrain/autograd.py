@@ -1,10 +1,10 @@
 """Core data structures."""
-import needle
+import TransFTrain
 from typing import List, Optional, NamedTuple, Tuple, Union
 from collections import namedtuple
 import numpy
 
-# needle version
+# TransFTrain version
 LAZY_MODE = False
 TENSOR_COUNTER = 0
 
@@ -23,7 +23,7 @@ class CPUDevice(Device):
     """Represents data that sits in CPU"""
 
     def __repr__(self):
-        return "needle.cpu()"
+        return "TransFTrain.cpu()"
 
     def __hash__(self):
         return self.__repr__().__hash__()
@@ -190,13 +190,13 @@ class TensorTuple(Value):
         return len(cdata)
 
     def __getitem__(self, index: int):
-        return needle.ops.tuple_get_item(self, index)
+        return TransFTrain.ops.tuple_get_item(self, index)
 
     def tuple(self):
         return tuple([x for x in self])
 
     def __repr__(self):
-        return "needle.TensorTuple" + str(self.tuple())
+        return "TransFTrain.TensorTuple" + str(self.tuple())
 
     def __str__(self):
         return self.__repr__()
@@ -204,7 +204,7 @@ class TensorTuple(Value):
     def __add__(self, other):
         assert isinstance(other, TensorTuple)
         assert len(self) == len(other)
-        return needle.ops.make_tuple(*[self[i] + other[i] for i in range(len(self))])
+        return TransFTrain.ops.make_tuple(*[self[i] + other[i] for i in range(len(self))])
 
     def detach(self):
         """Create a new tensor that shares the data but detaches from the graph."""
@@ -311,7 +311,7 @@ class Tensor(Value):
         compute_gradient_of_variables(self, out_grad)
 
     def __repr__(self):
-        return "needle.Tensor(" + str(self.realize_cached_data()) + ")"
+        return "TransFTrain.Tensor(" + str(self.realize_cached_data()) + ")"
 
     def __str__(self):
         return self.realize_cached_data().__str__()
@@ -324,15 +324,15 @@ class Tensor(Value):
 
     def __add__(self, other):
         if isinstance(other, Tensor):
-            return needle.ops.EWiseAdd()(self, other)
+            return TransFTrain.ops.EWiseAdd()(self, other)
         else:
-            return needle.ops.AddScalar(other)(self)
+            return TransFTrain.ops.AddScalar(other)(self)
 
     def __mul__(self, other):
         if isinstance(other, Tensor):
-            return needle.ops.EWiseMul()(self, other)
+            return TransFTrain.ops.EWiseMul()(self, other)
         else:
-            return needle.ops.MulScalar(other)(self)
+            return TransFTrain.ops.MulScalar(other)(self)
 
     def __pow__(self, other):
         ### BEGIN YOUR SOLUTION
@@ -341,36 +341,36 @@ class Tensor(Value):
 
     def __sub__(self, other):
         if isinstance(other, Tensor):
-            return needle.ops.EWiseAdd()(self, needle.ops.Negate()(other))
+            return TransFTrain.ops.EWiseAdd()(self, TransFTrain.ops.Negate()(other))
         else:
-            return needle.ops.AddScalar(-other)(self)
+            return TransFTrain.ops.AddScalar(-other)(self)
 
     def __truediv__(self, other):
         if isinstance(other, Tensor):
-            return needle.ops.EWiseDiv()(self, other)
+            return TransFTrain.ops.EWiseDiv()(self, other)
         else:
-            return needle.ops.DivScalar(other)(self)
+            return TransFTrain.ops.DivScalar(other)(self)
 
     def __matmul__(self, other):
-        return needle.ops.MatMul()(self, other)
+        return TransFTrain.ops.MatMul()(self, other)
 
     def matmul(self, other):
-        return needle.ops.MatMul()(self, other)
+        return TransFTrain.ops.MatMul()(self, other)
 
     def sum(self, axes=None):
-        return needle.ops.Summation(axes)(self)
+        return TransFTrain.ops.Summation(axes)(self)
 
     def broadcast_to(self, shape):
-        return needle.ops.BroadcastTo(shape)(self)
+        return TransFTrain.ops.BroadcastTo(shape)(self)
 
     def reshape(self, shape):
-        return needle.ops.Reshape(shape)(self)
+        return TransFTrain.ops.Reshape(shape)(self)
 
     def __neg__(self):
-        return needle.ops.Negate()(self)
+        return TransFTrain.ops.Negate()(self)
 
     def transpose(self, axes=None):
-        return needle.ops.Transpose(axes)(self)
+        return TransFTrain.ops.Transpose(axes)(self)
 
     __radd__ = __add__
     __rmul__ = __mul__

@@ -26,8 +26,8 @@ def config_pybind():
     extra_compile_args = ["-std=c++14"]
 
     if os.name == "nt":
-        library_dirs = ["needle", "../build/Release", "../build"]
-        libraries = ["needle"]
+        library_dirs = ["TransFTrain", "../build/Release", "../build"]
+        libraries = ["TransFTrain"]
         extra_compile_args = None
     else:
         library_dirs = None
@@ -52,12 +52,12 @@ def config_pybind():
 
 
 setup(
-    name="needle",
+    name="transtrain",
     version=__version__,
     description="DLsys",
     zip_safe=False,
     packages=find_packages(),
-    package_dir={"needle": "needle"},
+    package_dir={"TransFTrain": "TransFTrain"},
     url="dlsyscourse.org",
     ext_modules=config_pybind(),
 )
