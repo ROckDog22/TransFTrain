@@ -79,7 +79,9 @@ def softmax_loss(Z, y):
         Average softmax loss over the sample.
     """
     ### BEGIN YOUR CODE
-    pass
+    assert Z.shape[0] == len(y)
+    # return np.log(np.array([np.exp(z1 - z1[y]) for z1,y in zip(Z,y)]).sum(axis=1)).mean()
+    return (np.log(np.sum(np.exp(Z-Z[range(len(y)), y].reshape(len(y),1)), axis = 1))).mean()
     ### END YOUR CODE
 
 
@@ -102,7 +104,20 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
         None
     """
     ### BEGIN YOUR CODE
-    pass
+    start, N = 0, X.shape[0]
+    
+    while start<N:
+        end = min(start+batch, N)
+        outputs = X[start:end] @ theta
+
+        Z = np.exp(outputs)
+        Z = Z/(np.sum(Z, axis=1).reshape(Z.shape[0], 1))
+        
+        Iy = np.zeros(Z.shape)
+        for i in range(0, end-start):
+            Iy[i, y[start+i]] = 1
+        theta-=lr/(end-start)*(X[start:end].T @ (Z-Iy))
+        start+=batch
     ### END YOUR CODE
 
 
@@ -129,7 +144,25 @@ def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
         None
     """
     ### BEGIN YOUR CODE
-    pass
+    start, N = 0, X.shape[0]
+    
+    while start<N:
+        end = min(start+batch, N)
+        l1_output = X[start:end] @ W1 # m * n . n * d -> m*d
+        Z1 = np.maximum(l1_output, 0) # m*d
+        outputs = np.exp(Z1 @ W2) # m*d . d*k -> m*k    
+        
+        Iy = np.zeros(outputs.shape) #m*k
+        for i in range(0, end-start):
+            Iy[i, y[start+i]] = 1
+        G2 = outputs/np.sum(outputs, axis=1).reshape(outputs.shape[0],1) - Iy # m * k
+        G1 = (Z1 > 0 ) * (G2 @ W2.T)
+
+        W1-=lr/(end-start)*(X[start:end].T @ G1) # 
+        W2-=lr/(end-start)*(Z1.T @ G2) # d*m . m*k
+
+        start+=batch
+        
     ### END YOUR CODE
 
 

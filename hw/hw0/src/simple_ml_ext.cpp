@@ -33,7 +33,11 @@ void softmax_regression_epoch_cpp(const float *X, const unsigned char *y,
      */
 
     /// BEGIN YOUR CODE
-
+    size_t index, i = 0;
+    while(i<m){
+        index = min(i+batch, m);
+        float* outputs = (float *)calloc((index-i)*k, )
+    }
     /// END YOUR CODE
 }
 
