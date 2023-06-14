@@ -1,6 +1,6 @@
 """Core data structures."""
 import TransFTrain
-from typing import List, Optional, NamedTuple, Tuple, Union
+from typing import List, Optional, NamedTuple, Tuple, Union, Dict
 from collections import namedtuple
 import numpy
 
@@ -335,10 +335,7 @@ class Tensor(Value):
             return TransFTrain.ops.MulScalar(other)(self)
 
     def __pow__(self, other):
-        ### BEGIN YOUR SOLUTION
-        # if isinstance(other, Tensor):
-        #     return TransFTrain.op.e
-        ### END YOUR SOLUTION
+        return TransFTrain.ops.PowerScalar(other)(self)
 
     def __sub__(self, other):
         if isinstance(other, Tensor):

@@ -1,8 +1,11 @@
 """Operator and gradient implementations."""
 from numbers import Number
-from typing import Optional, List
+from typing import Optional, List, Tuple, Union
+
+from python.TransFTrain.autograd import Value
 from .autograd import NDArray
 from .autograd import Op, Tensor, Value, TensorOp
+from .autograd import cpu
 
 import numpy
 
@@ -73,14 +76,10 @@ class PowerScalar(TensorOp):
         self.scalar = scalar
 
     def compute(self, a: NDArray) -> NDArray:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return array_api.power(a, self.scalar)
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return out_grad * self.scalar * array_api.power(node.inputs[0], self.scalar-1)        
 
 
 def power_scalar(a, scalar):
@@ -91,15 +90,11 @@ class EWiseDiv(TensorOp):
     """Op to element-wise divide two nodes."""
 
     def compute(self, a, b):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return a / b
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
-
+        lhs, rhs = node
+        return out_grad / rhs, - out_grad * lhs / array_api.power(rhs, 2) 
 
 def divide(a, b):
     return EWiseDiv()(a, b)
@@ -110,14 +105,10 @@ class DivScalar(TensorOp):
         self.scalar = scalar
 
     def compute(self, a):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return a / self.scalar
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return out_grad / self.scalar
 
 
 def divide_scalar(a, scalar):
@@ -129,14 +120,13 @@ class Transpose(TensorOp):
         self.axes = axes
 
     def compute(self, a):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        if self.axes is None:
+            self.axex = (len(a.shape) - 2, len(a.shape) - 1)
+        return array_api.swapaxes(a, *self.axes)
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        change_axes_ = node.op.axex
+        return out_grad.transpose(change_axes_)
 
 
 def transpose(a, axes=None):
