@@ -336,7 +336,8 @@ class Tensor(Value):
 
     def __pow__(self, other):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        # if isinstance(other, Tensor):
+        #     return TransFTrain.op.e
         ### END YOUR SOLUTION
 
     def __sub__(self, other):
