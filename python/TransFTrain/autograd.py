@@ -370,6 +370,12 @@ class Tensor(Value):
     def transpose(self, axes=None):
         return TransFTrain.ops.Transpose(axes)(self)
 
+    def __eq__(self, other):
+        if isinstance(other, Tensor):
+            return (other.realize_cached_data() == self.realize_cached_data()).all()
+        return False
+        
+
     __radd__ = __add__
     __rmul__ = __mul__
     __rsub__ = __sub__
