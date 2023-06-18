@@ -62,7 +62,7 @@ class MulScalar(TensorOp):
         return a * self.scalar
 
     def gradient(self, out_grad: Tensor, node: Tensor):
-        return (out_grad * self.scalar,)
+        return out_grad * self.scalar
 
 
 def mul_scalar(a, scalar):
@@ -186,7 +186,11 @@ class MatMul(TensorOp):
 
     def gradient(self, out_grad, node):
         lhm, rhm = node.inputs
-        l_range, r_range = len()
+        dl = matmul(out_grad, rhm.transpose())
+        dr = matmul(lhm.transpose(), out_grad)
+        dl = summation(dl, axes = tuple(range(out_grad.ndim - lhm.ndim)))
+        dr = summation(dl, axes = tuple(range(out_grad.ndim - rhm.ndim)))
+        return dl, dr
 
 
 def matmul(a, b):
@@ -195,30 +199,28 @@ def matmul(a, b):
 
 class Negate(TensorOp):
     def compute(self, a):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return -a
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
+        return -out_grad
+
+class Abs(TensorOp):
+    def compute(self, a):
+        return array_api.abs(a)
+
+    def gradient(self, out_grad, node):
         raise NotImplementedError()
-        ### END YOUR SOLUTION
-
-
-def negate(a):
-    return Negate()(a)
+    
+def abs(a):
+    return Abs()(a)
 
 
 class Log(TensorOp):
     def compute(self, a):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return array_api.log(a)
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return out_grad / node.inputs[0]
 
 
 def log(a):
@@ -248,23 +250,22 @@ def relu(a):
     return ReLU()(a)
 
 
-class LogSoftmax(TensorOp):
-    def __init__(self, axis):
-        self.axis = axis
-
-    def compute(self, Z):
-        Z -= array_api.max(Z, axis= self.axis, keepdims=True)
-        Z_exp = array_api.exp(Z)
-        Z = Z_exp / array_api.sum(Z_exp, axis = 1, keepdims=True)
-        return Z
+# class LogSoftmax(TensorOp):
+#     def __init__(self, axis):
+#         self.axis = axis
+#     def compute(self, Z):
+#         Z -= max(Z, axis= self.axis, keepdims=True)
+#         Z_exp = exp(Z)
+#         Z = Z_exp / sum(Z_exp, axis = self.axis, keepdims=True)
+#         return Z
     
-    def gradient(self, out_grad, node):
-        # x = array_api.
-        pass
+#     def gradient(self, out_grad, node):
+#         # x = array_api.
+#         pass
 
 
-def logsoftmax(a):
-    return LogSoftmax()(a)
+# def logsoftmax(a, axis=0):
+#     return LogSoftmax(axis=axis)(a)
 
 
 # additional helper functions

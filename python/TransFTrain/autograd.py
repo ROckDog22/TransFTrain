@@ -1,7 +1,7 @@
 """Core data structures."""
 import TransFTrain
 from typing import List, Optional, NamedTuple, Tuple, Union, Dict
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 import numpy
 
 # TransFTrain version
@@ -135,7 +135,7 @@ class Value:
     def __del__(self):
         global TENSOR_COUNTER
         TENSOR_COUNTER -= 1
-
+    
     def _init(
         self,
         op: Optional[Op],
@@ -293,6 +293,10 @@ class Tensor(Value):
     @property
     def shape(self):
         return self.realize_cached_data().shape
+    
+    @property
+    def ndim(self):
+        return len(self.shape)
 
     @property
     def dtype(self):
@@ -364,20 +368,34 @@ class Tensor(Value):
     def reshape(self, shape):
         return TransFTrain.ops.Reshape(shape)(self)
 
+    def log(self):
+        return TransFTrain.ops.Log()(self)
+    
+    def exp(self):
+        return TransFTrain.ops.Exp()(self)
+    
     def __neg__(self):
         return TransFTrain.ops.Negate()(self)
+
+    def __abs__(self):
+        return TransFTrain.ops.Abs()(self)
 
     def transpose(self, axes=None):
         return TransFTrain.ops.Transpose(axes)(self)
 
     def boradcast_to(self, shape):
-        return TransFTrain.ops.Boradcast(shape)(self)
+        return TransFTrain.ops.BroadcastTo(shape)(self)
     
-    def __eq__(self, other):
-        if isinstance(other, Tensor):
-            return (other.realize_cached_data() == self.realize_cached_data()).all()
-        return False
-        
+    # 值得注意的是 eq 和 le影响了Tensor的hash导致无法hash
+    # def __eq__(self, other):
+    #     if isinstance(other, Tensor):
+    #         return (other.realize_cached_data() == self.realize_cached_data()).all()
+    #     return False
+    
+    # def __le__(self, other):
+    #     if isinstance(other, Tensor):
+    #         return (other.realize_cached_data() <= self.realize_cached_data()).all()
+    #     return False
 
     __radd__ = __add__
     __rmul__ = __mul__
@@ -391,7 +409,7 @@ def compute_gradient_of_variables(output_tensor, out_grad):
     Store the computed result in the grad field of each Variable.
     """
     # a map from node to a list of gradient contributions from each output node
-    node_to_output_grads_list: Dict[Tensor, List[Tensor]] = {}
+    node_to_output_grads_list: Dict[Tensor, List[Tensor]] = defaultdict(list)
     # Special note on initializing gradient of
     # We are really taking a derivative of the scalar reduce_sum(output_node)
     # instead of the vector output_node. But this is the common case for loss function.
@@ -399,10 +417,13 @@ def compute_gradient_of_variables(output_tensor, out_grad):
 
     # Traverse graph in reverse topological order given the output_node that we are taking gradient wrt.
     reverse_topo_order = list(reversed(find_topo_sort([output_tensor])))
-
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+    print(reverse_topo_order)
+    for i in reverse_topo_order:
+        i.grad = sum_node_list(node_to_output_grads_list[i])
+        vk = i.op.gradient_as_tuple(i.grad, i) if i.op else (i.grad,)
+        for k, vk in zip(i.inputs, vk):
+            node_to_output_grads_list[k].append(vk)
+    return i.grad
 
 
 def find_topo_sort(node_list: List[Value]) -> List[Value]:
@@ -413,16 +434,25 @@ def find_topo_sort(node_list: List[Value]) -> List[Value]:
     after all its predecessors are traversed due to post-order DFS, we get a topological
     sort.
     """
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+    topo_order = []
+    visited = set()
+    for node in node_list:
+        topo_sort_dfs(node, visited, topo_order)
+    return topo_order
+
 
 
 def topo_sort_dfs(node, visited, topo_order):
     """Post-order DFS"""
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+    if node in visited:
+        return
+    
+    for m in node.inputs:
+        topo_sort_dfs(m, visited, topo_order)
+    visited.add(node)
+    topo_order.append(node)
+
+
 
 
 ##############################
