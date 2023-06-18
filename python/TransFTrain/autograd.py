@@ -370,6 +370,9 @@ class Tensor(Value):
     def transpose(self, axes=None):
         return TransFTrain.ops.Transpose(axes)(self)
 
+    def boradcast_to(self, shape):
+        return TransFTrain.ops.Boradcast(shape)(self)
+    
     def __eq__(self, other):
         if isinstance(other, Tensor):
             return (other.realize_cached_data() == self.realize_cached_data()).all()

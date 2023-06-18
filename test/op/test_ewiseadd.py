@@ -22,7 +22,7 @@ class TestEwiseAdd(unittest.TestCase):
         x = train.Tensor([[1,2,3],[1,2,3]], dtype="int8")
         y = train.Tensor([[4,5,6], [4,5,6]], dtype="int8")
         z = train.Tensor([[5,7,9], [5,7,9]], dtype="int8")
-        self.assertEqual(train.add(x, y), z)
+        self.assertEqual(x + y, z)
 
     def test_case4(self):
         x = train.Tensor([[1,2,3],[1,2,3]], dtype="int8")

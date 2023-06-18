@@ -1,6 +1,7 @@
 """Operator and gradient implementations."""
 from numbers import Number
 from typing import Optional, List, Tuple, Union
+from itertools import zip_longest
 
 from .autograd import NDArray
 from .autograd import Op, Tensor, Value, TensorOp
@@ -155,37 +156,25 @@ class BroadcastTo(TensorOp):
         return array_api.broadcast_to(a, self.shape)
 
     def gradient(self, out_grad, node):
-        input_shape = node.inputs[0].shape
-        grad_shape = out_grad.shape
-        if len(input_shape) != len(grad_shape):
-            pass
+        shapes = tuple(zip_longest(reversed(node.inputs[0].shape), reversed(out_grad.shape)))
+        axes = tuple(i for i, (d1, d2) in enumerate(shapes[::-1]) if d1!=d2)
+        return summation(out_grad, axes=axes).reshape(node.inputs[0].shape)
 
 def broadcast_to(a, shape):
     return BroadcastTo(shape)(a)
 
-
 class Summation(TensorOp):
     def __init__(self, axes: Optional[tuple] = None):
-        self.axes = axes
+        self.axes = (axes,) if isinstance(axes, int) else axes
 
     def compute(self, a):
+        if self.axes is None:
+            return array_api.sum(a)
         return array_api.sum(a, axis = self.axes)
 
     def gradient(self, out_grad, node):
-        shape_, axes = list(node.inputs[0].shape), self.axes
-
-        if shape_ is None:
-            shape_ = [1 for i in axes]
-        elif axes is not None:
-            if type(axes) == int:
-                axes = [axes] 
-            shape_ = [v if i not in axes else 1 for i,v in enumerate(shape_)]
-        else:
-            shape_ = [1 for i in shape_]
-
-        out_grad = reshape(out_grad, tuple(shape_))
-        out_grad = broadcast_to(out_grad, node.inputs[0].shape)
-        return out_grad
+        shape = restore_shape(node.inputs[0], self.axes)
+        return out_grad.reshape(shape).broadcast_to(node.inputs[0].shape)
 
 def summation(a, axes=None):
     return Summation(axes)(a)
@@ -356,3 +345,14 @@ def ones_like(array, *, device=None, requires_grad=False):
     return full(
         array.shape, 1, dtype=array.dtype, device=device, requires_grad=requires_grad
     )
+
+
+def restore_shape(original, axes=None):
+    if isinstance(axes, int):
+        axes = axes
+    shape = [1] * len(original.shape)
+    if axes:
+        shape = list(original.shape)
+        for i in axes:
+            shape[i] = 1
+    return tuple(shape)
