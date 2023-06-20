@@ -4,7 +4,7 @@ import numpy as np
 
 import sys
 sys.path.append('python/')
-import needle as ndl
+import TransFTrain as train
 
 
 def parse_mnist(image_filesname, label_filename):
@@ -90,5 +90,5 @@ def loss_err(h,y):
     """ Helper function to compute both loss and error"""
     y_one_hot = np.zeros((y.shape[0], h.shape[-1]))
     y_one_hot[np.arange(y.size), y] = 1
-    y_ = ndl.Tensor(y_one_hot)
+    y_ = train.Tensor(y_one_hot)
     return softmax_loss(h,y_).numpy(), np.mean(h.numpy().argmax(axis=1) != y)
