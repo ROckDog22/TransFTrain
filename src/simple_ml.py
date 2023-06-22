@@ -6,6 +6,10 @@ try:
 except:
     pass
 
+import sys
+sys.path.append("./python")
+import TransFTrain as train
+
 
 def add(x, y):
     """ A trivial 'add' function you should implement to get used to the
@@ -19,9 +23,7 @@ def add(x, y):
     Return:
         Sum of x + y
     """
-    ### BEGIN YOUR CODE
     return x + y
-    ### END YOUR CODE
 
 
 def parse_mnist(image_filename, label_filename):
@@ -47,7 +49,6 @@ def parse_mnist(image_filename, label_filename):
                 labels of the examples.  Values should be of type np.uint8 and
                 for MNIST will contain the values 0-9.
     """
-    ### BEGIN YOUR CODE
     image_file = gzip.open(image_filename, 'rb')
     magic, num_images, rows, cols = struct.unpack(">IIII", image_file.read(16))
     image_data = image_file.read()
@@ -60,10 +61,9 @@ def parse_mnist(image_filename, label_filename):
     image_file.close()
     label_file.close()
     return (images, labels)
-    ### END YOUR CODE
 
 
-def softmax_loss(Z, y):
+def softmax_loss(Z, y_one_hot):
     """ Return softmax loss.  Note that for the purposes of this assignment,
     you don't need to worry about "nicely" scaling the numerical properties
     of the log-sum-exp computation, but can just compute this directly.
@@ -79,9 +79,11 @@ def softmax_loss(Z, y):
         Average softmax loss over the sample.
     """
     ### BEGIN YOUR CODE
-    assert Z.shape[0] == len(y)
-    # return np.log(np.array([np.exp(z1 - z1[y]) for z1,y in zip(Z,y)]).sum(axis=1)).mean()
-    return (np.log(np.sum(np.exp(Z-Z[range(len(y)), y].reshape(len(y),1)), axis = 1))).mean()
+    assert Z.shape[0] == y_one_hot.shape[0]
+    
+    return (np.log(np.sum(np.exp(Z-Z[range(y_one_hot.shape[0]), y_one_hot].reshape(y_one_hot.shape[0],1)), axis = 1))).mean()
+
+    return tra
     ### END YOUR CODE
 
 
@@ -103,7 +105,6 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
     Returns:
         None
     """
-    ### BEGIN YOUR CODE
     start, N = 0, X.shape[0]
     
     while start<N:
@@ -118,7 +119,6 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
             Iy[i, y[start+i]] = 1
         theta-=lr/(end-start)*(X[start:end].T @ (Z-Iy))
         start+=batch
-    ### END YOUR CODE
 
 
 def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
@@ -143,7 +143,6 @@ def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
     Returns:
         None
     """
-    ### BEGIN YOUR CODE
     start, N = 0, X.shape[0]
     
     while start<N:
@@ -163,7 +162,6 @@ def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
 
         start+=batch
         
-    ### END YOUR CODE
 
 
 

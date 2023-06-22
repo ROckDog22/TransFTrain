@@ -79,7 +79,7 @@ class PowerScalar(TensorOp):
         return array_api.power(a, self.scalar)
 
     def gradient(self, out_grad, node):
-        return out_grad * self.scalar * array_api.power(node.inputs[0], self.scalar-1)        
+        return out_grad * self.scalar * power_scalar(node.inputs[0], self.scalar-1)        
 
 
 def power_scalar(a, scalar):
@@ -93,8 +93,8 @@ class EWiseDiv(TensorOp):
         return a / b
 
     def gradient(self, out_grad, node):
-        lhs, rhs = node
-        return out_grad / rhs, - out_grad * lhs / array_api.power(rhs, 2) 
+        lhs, rhs = node.inputs
+        return out_grad / rhs, - out_grad * lhs / power_scalar(rhs, 2) 
 
 def divide(a, b):
     return EWiseDiv()(a, b)
@@ -189,7 +189,7 @@ class MatMul(TensorOp):
         dl = matmul(out_grad, rhm.transpose())
         dr = matmul(lhm.transpose(), out_grad)
         dl = summation(dl, axes = tuple(range(out_grad.ndim - lhm.ndim)))
-        dr = summation(dl, axes = tuple(range(out_grad.ndim - rhm.ndim)))
+        dr = summation(dr, axes = tuple(range(out_grad.ndim - rhm.ndim)))
         return dl, dr
 
 
@@ -203,6 +203,9 @@ class Negate(TensorOp):
 
     def gradient(self, out_grad, node):
         return -out_grad
+
+def negate(a):
+    return Negate()(a)
 
 class Abs(TensorOp):
     def compute(self, a):
@@ -248,25 +251,6 @@ class ReLU(TensorOp):
 
 def relu(a):
     return ReLU()(a)
-
-
-# class LogSoftmax(TensorOp):
-#     def __init__(self, axis):
-#         self.axis = axis
-#     def compute(self, Z):
-#         Z -= max(Z, axis= self.axis, keepdims=True)
-#         Z_exp = exp(Z)
-#         Z = Z_exp / sum(Z_exp, axis = self.axis, keepdims=True)
-#         return Z
-    
-#     def gradient(self, out_grad, node):
-#         # x = array_api.
-#         pass
-
-
-# def logsoftmax(a, axis=0):
-#     return LogSoftmax(axis=axis)(a)
-
 
 # additional helper functions
 def full(

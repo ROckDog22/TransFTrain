@@ -8,8 +8,6 @@ import numpy
 LAZY_MODE = False
 TENSOR_COUNTER = 0
 
-# NOTE: we will numpy as the array_api
-# to backup our computations, this line will change in later homeworks
 import numpy as array_api
 
 NDArray = numpy.ndarray
@@ -105,6 +103,11 @@ class TensorOp(Op):
     def __call__(self, *args):
         return Tensor.make_from_op(self, args)
 
+class TensorTupleOp(Op):
+    """Op class specialized to output TensorTuple"""
+
+    def __call__(self, *args):
+        return TensorTuple.make_from_op(self, args)
 
 class Value:
     """A value in the computational graph."""
@@ -417,7 +420,6 @@ def compute_gradient_of_variables(output_tensor, out_grad):
 
     # Traverse graph in reverse topological order given the output_node that we are taking gradient wrt.
     reverse_topo_order = list(reversed(find_topo_sort([output_tensor])))
-    print(reverse_topo_order)
     for i in reverse_topo_order:
         i.grad = sum_node_list(node_to_output_grads_list[i])
         vk = i.op.gradient_as_tuple(i.grad, i) if i.op else (i.grad,)
