@@ -469,6 +469,6 @@ if __name__ == "__main__" :
     # 创建测试运行器
     # 运行测试套件中的测试方法
     # suite = unittest.TestSuite()
-    # suite.addTest(TestAutograd("test_softmax_loss_train"))
+    # suite.addTest(TestAutograd("test_nn_epoch_train"))
     # runner = unittest.TextTestRunner()
     # result = runner.run(suite)

@@ -63,7 +63,7 @@ def parse_mnist(image_filename, label_filename):
     return (images, labels)
 
 
-def softmax_loss(Z, y_one_hot):
+def softmax_loss(Z: train.Tensor, y_one_hot):
     """ Return softmax loss.  Note that for the purposes of this assignment,
     you don't need to worry about "nicely" scaling the numerical properties
     of the log-sum-exp computation, but can just compute this directly.
@@ -72,19 +72,15 @@ def softmax_loss(Z, y_one_hot):
         Z (np.ndarray[np.float32]): 2D numpy array of shape
             (batch_size, num_classes), containing the logit predictions for
             each class.
-        y (np.ndarray[np.int8]): 1D numpy array of shape (batch_size, )
+        y (np.ndarray[np.int8]): 2D numpy array of shape (batch_size, )
             containing the true label of each example.
 
     Returns:
         Average softmax loss over the sample.
     """
-    ### BEGIN YOUR CODE
     assert Z.shape[0] == y_one_hot.shape[0]
-    
-    return (np.log(np.sum(np.exp(Z-Z[range(y_one_hot.shape[0]), y_one_hot].reshape(y_one_hot.shape[0],1)), axis = 1))).mean()
-
-    return tra
-    ### END YOUR CODE
+    Z_norm = Z - train.summation(Z*y_one_hot, axes=1).reshape((Z.shape[0], 1)).broadcast_to(Z.shape)
+    return   train.summation(train.summation(Z_norm.exp(), axes=1).log()) / Z.shape[0]
 
 
 def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
@@ -147,29 +143,30 @@ def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
     
     while start<N:
         end = min(start+batch, N)
-        l1_output = X[start:end] @ W1 # m * n . n * d -> m*d
-        Z1 = np.maximum(l1_output, 0) # m*d
-        outputs = np.exp(Z1 @ W2) # m*d . d*k -> m*k    
+        l1_output = train.Tensor(X[start:end]) @ W1 # m * n . n * d -> m*d
+        Z1 = train.relu(l1_output) # m*d
+        outputs = Z1 @ W2 # m*d . d*k -> m*k    
         
         Iy = np.zeros(outputs.shape) #m*k
         for i in range(0, end-start):
             Iy[i, y[start+i]] = 1
-        G2 = outputs/np.sum(outputs, axis=1).reshape(outputs.shape[0],1) - Iy # m * k
-        G1 = (Z1 > 0 ) * (G2 @ W2.T)
+        out = softmax_loss(outputs, train.Tensor(Iy))
+        out.backward()
 
-        W1-=lr/(end-start)*(X[start:end].T @ G1) # 
-        W2-=lr/(end-start)*(Z1.T @ G2) # d*m . m*k
+        W1 = W1.numpy() - lr*W1.grad.numpy()
+        W2 = W2.numpy() - lr*W2.grad.numpy()
 
+        W1, W2 = train.Tensor(W1), train.Tensor(W2)
         start+=batch
+    return W1, W2
         
-
-
-
-### CODE BELOW IS FOR ILLUSTRATION, YOU DO NOT NEED TO EDIT
 
 def loss_err(h,y):
     """ Helper funciton to compute both loss and error"""
-    return softmax_loss(h,y), np.mean(h.argmax(axis=1) != y)
+    Iy = np.zeros((y.shape[0], h.shape[-1]))
+    Iy[np.arange(Iy.shape[0]), y] = 1
+    Iy = train.Tensor(Iy)
+    return softmax_loss(h,Iy).numpy(), np.mean(h.numpy().argmax(axis=1) != y)
 
 
 def train_softmax(X_tr, y_tr, X_te, y_te, epochs=10, lr=0.5, batch=100,
