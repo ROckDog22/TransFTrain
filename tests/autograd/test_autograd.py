@@ -464,11 +464,3 @@ class TestAutograd(unittest.TestCase):
 
 if __name__ == "__main__" :
     unittest.main()
-    # 测试unittest中的某一个函数
-    # 将测试方法添加到测试套件
-    # 创建测试运行器
-    # 运行测试套件中的测试方法
-    # suite = unittest.TestSuite()
-    # suite.addTest(TestAutograd("test_nn_epoch_train"))
-    # runner = unittest.TextTestRunner()
-    # result = runner.run(suite)

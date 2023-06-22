@@ -316,14 +316,17 @@ class LogSumExp(TensorOp):
         self.axes = axes
 
     def compute(self, Z):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        # compute call array_api. api NDarray compute
+        max_z = array_api.max(Z, self.axes, keepdims=True)
+        max_z_ = array_api.broadcast_to(max_z, Z.shape)
+        ret = array_api.log(array_api.exp(Z - max_z_).sum(self.axes))
+        return ret + max_z.reshape(ret.shape)
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        # Tensor compute
+        inp = node.inputs[0]
+        shape = restore_shape(inp, self.axes)
+        return out_grad.reshape(shape).broadcast_to(inp.shape) * exp(inp-node.reshape(shape).broadcast_to(inp.shape))
 
 
 def logsumexp(a, axes=None):

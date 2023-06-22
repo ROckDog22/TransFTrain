@@ -1,9 +1,9 @@
 """The module.
 """
 from typing import List, Callable, Any
-from needle.autograd import Tensor
-from needle import ops
-import needle.init as init
+from TransFTrain.autograd import Tensor
+from TransFTrain import ops
+import TransFTrain.init as init
 import numpy as np
 
 
