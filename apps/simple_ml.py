@@ -8,6 +8,7 @@ except:
 
 import sys
 sys.path.append("./python")
+sys.path.append("./src")
 import TransFTrain as train
 
 
