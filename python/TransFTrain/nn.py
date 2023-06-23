@@ -7,7 +7,7 @@ from TransFTrain.autograd import Tensor
 from TransFTrain import ops
 import TransFTrain.init as init
 import numpy as np
-
+from functools import reduce
 
 class Parameter(Tensor):
     """A special kind of tensor that represents parameters."""
@@ -112,10 +112,9 @@ class Linear(Module):
         return ret
 
 
-
 class Flatten(Module):
     def forward(self, X):
-        N, *dims = X.shape
+        N, _ = X.shape
         return X.reshape((N, -1))
 
 
@@ -130,9 +129,7 @@ class Sequential(Module):
         self.modules = modules
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return reduce(lambda x,f: f(x), self.modules, x)
 
 
 class SoftmaxLoss(Module):

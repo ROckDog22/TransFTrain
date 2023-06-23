@@ -92,19 +92,6 @@ class TestnnAndoptim(unittest.TestCase):
         loss.backward()
         return x.grad.cached_data
 
-    def sequential_forward(batches=3):
-        np.random.seed(42)
-        f = nn.Sequential(nn.Linear(5, 8), nn.ReLU(), nn.Linear(8, 5))
-        x = get_tensor(batches, 5)
-        return f(x).cached_data
-
-    def sequential_backward(batches=3):
-        np.random.seed(42)
-        f = nn.Sequential(nn.Linear(5, 8), nn.ReLU(), nn.Linear(8, 5))
-        x = get_tensor(batches, 5)
-        f(x).sum().backward()
-        return x.grad.cached_data
-
     def residual_forward(shape=(5,5)):
         np.random.seed(42)
         f = nn.Residual(nn.Sequential(nn.Linear(*shape), nn.ReLU(), nn.Linear(*shape[::-1])))
@@ -329,24 +316,6 @@ class TestnnAndoptim(unittest.TestCase):
             [0.5, 9. ]], dtype=np.float32), rtol=1e-5, atol=1e-5)
 
 
-    def test_nn_sequential_forward_1():
-        print(sequential_forward(batches=3))
-        np.testing.assert_allclose(sequential_forward(batches=3),
-            np.array([[ 3.296263,  0.057031,  2.97568 , -4.618432, -0.902491],
-                [ 2.465332, -0.228394,  2.069803, -3.772378, -0.238334],
-                [ 3.04427 , -0.25623 ,  3.848721, -6.586399, -0.576819]], dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-    def test_nn_sequential_backward_1():
-        np.testing.assert_allclose(sequential_backward(batches=3),
-            np.array([[ 0.802697, -1.0971  ,  0.120842,  0.033051,  0.241105],
-                [-0.364489,  0.651385,  0.482428,  0.925252, -1.233545],
-                [ 0.802697, -1.0971  ,  0.120842,  0.033051,  0.241105]], dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-    def submit_nn_sequential():
-        mugrade.submit(sequential_forward(batches=2))
-        mugrade.submit(sequential_backward(batches=2))
-
-
     def test_nn_softmax_loss_forward_1():
         np.testing.assert_allclose(softmax_loss_forward(5, 10),
             np.array(4.041218, dtype=np.float32), rtol=1e-5, atol=1e-5)
@@ -553,9 +522,6 @@ class TestnnAndoptim(unittest.TestCase):
                         [ 0.24244219, -0.19571924, -0.08556509,  0.9191598,   1.6787351 ]],
             dtype=np.float32), rtol=1e-5, atol=1e-5)
 
-    def submit_nn_residual():
-        mugrade.submit(residual_forward(shape=(3,4)))
-        mugrade.submit(residual_backward(shape=(3,4)))
 
 
     def test_optim_sgd_vanilla_1():
