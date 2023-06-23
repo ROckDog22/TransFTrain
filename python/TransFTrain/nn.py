@@ -1,6 +1,8 @@
 """The module.
 """
 from typing import List, Callable, Any
+import sys 
+sys.path.append('./python')
 from TransFTrain.autograd import Tensor
 from TransFTrain import ops
 import TransFTrain.init as init
@@ -87,14 +89,27 @@ class Linear(Module):
         self.in_features = in_features
         self.out_features = out_features
 
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        self.weight = Parameter(init.kaiming_uniform(
+            fan_in=in_features, fan_out=out_features, device=device, dtype=dtype, requires_grad=True
+        ))
+
+        self.bias = None
+
+        if bias:
+            self.bias = init.kaiming_uniform(
+                fan_in = out_features,
+                fan_out = 1,
+                device = device,
+                dtype = dtype,
+                requires_grad=True
+            )
+            self.bias = self.bias.reshape((1, out_features))
 
     def forward(self, X: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        ret = X @ self.weight
+        if self.bias:
+            ret += self.bias.broadcast_to(ret.shape)
+        return ret
 
 
 

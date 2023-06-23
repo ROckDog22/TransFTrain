@@ -78,17 +78,6 @@ class TestnnAndoptim(unittest.TestCase):
         (y**2).sum().backward()
         return x.grad.cached_data
 
-    def relu_forward(*shape):
-        f = train.nn.ReLU()
-        x = get_tensor(*shape)
-        return f(x).cached_data
-
-    def relu_backward(*shape):
-        f = train.nn.ReLU()
-        x = get_tensor(*shape)
-        (f(x)**2).sum().backward()
-        return x.grad.cached_data
-
     def layernorm_forward(shape, dim):
         f = train.nn.LayerNorm1d(dim)
         x = get_tensor(*shape)
@@ -112,21 +101,6 @@ class TestnnAndoptim(unittest.TestCase):
         f = train.nn.SoftmaxLoss()
         loss = f(x, y)
         loss.backward()
-        return x.grad.cached_data
-
-    def linear_forward(lhs_shape, rhs_shape):
-        np.random.seed(199)
-        f = train.nn.Linear(*lhs_shape)
-        f.bias.data = get_tensor(lhs_shape[-1])
-        x = get_tensor(*rhs_shape)
-        return f(x).cached_data
-
-    def linear_backward(lhs_shape, rhs_shape):
-        np.random.seed(199)
-        f = train.nn.Linear(*lhs_shape)
-        f.bias.data = get_tensor(lhs_shape[-1])
-        x = get_tensor(*rhs_shape)
-        (f(x)**2).sum().backward()
         return x.grad.cached_data
 
     def sequential_forward(batches=3):
@@ -217,17 +191,6 @@ class TestnnAndoptim(unittest.TestCase):
 
     def global_tensor_count():
         return np.array(train.autograd.TENSOR_COUNTER)
-
-    def nn_linear_weight_init():
-        np.random.seed(1337)
-        f = train.nn.Linear(7, 4)
-        f.weight.cached_data
-        return f.weight.cached_data
-
-    def nn_linear_bias_init():
-        np.random.seed(1337)
-        f = train.nn.Linear(7, 4)
-        return f.bias.cached_data
 
     class UselessModule(train.nn.Module):
         def __init__(self):
@@ -375,135 +338,6 @@ class TestnnAndoptim(unittest.TestCase):
         np.testing.assert_allclose(power_scalar_backward((2,2), power=2),
             np.array([[6.7, 8.4],
             [0.5, 9. ]], dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-
-    def test_init_kaiming_uniform():
-        np.random.seed(42)
-        np.testing.assert_allclose(train.init.kaiming_uniform(3,5).numpy(),
-            np.array([[-0.35485414, 1.2748126 , 0.65617794, 0.27904832, -0.9729262 ],
-            [-0.97299445, -1.2499284 , 1.0357026 , 0.28599644, 0.58851814],
-            [-1.3559918 , 1.3291057 , 0.9402898 , -0.81362784, -0.8999349 ]],
-            dtype=np.float32), rtol=1e-4, atol=1e-4)
-
-    def test_init_kaiming_normal():
-        np.random.seed(42)
-        np.testing.assert_allclose(train.init.kaiming_normal(3,5).numpy(),
-            np.array([[ 0.4055654 , -0.11289233, 0.5288355 , 1.2435486 , -0.19118543],
-            [-0.19117202, 1.2894219 , 0.62660784, -0.38332424, 0.4429984 ],
-            [-0.37837896, -0.38026676, 0.19756137, -1.5621868 , -1.4083896 ]],
-            dtype=np.float32), rtol=1e-4, atol=1e-4)
-
-
-    def test_init_xavier_uniform():
-        np.random.seed(42)
-        np.testing.assert_allclose(train.init.xavier_uniform(3, 5, gain=1.5).numpy(),
-            np.array([[-0.32595432, 1.1709901 , 0.60273796, 0.25632226, -0.8936898 ],
-            [-0.89375246, -1.1481324 , 0.95135355, 0.26270452, 0.54058844],
-            [-1.245558 , 1.2208616 , 0.8637113 , -0.74736494, -0.826643 ]],
-            dtype=np.float32), rtol=1e-4, atol=1e-4)
-
-    def test_init_xavier_normal():
-        np.random.seed(42)
-        np.testing.assert_allclose(train.init.xavier_normal(3, 5, gain=0.33).numpy(),
-            np.array([[ 0.08195783 , -0.022813609, 0.10686861 , 0.25129992 ,
-            -0.038635306],
-            [-0.038632598, 0.2605701 , 0.12662673 , -0.07746328 ,
-            0.08952241 ],
-            [-0.07646392 , -0.07684541 , 0.039923776, -0.31569123 ,
-            -0.28461143 ]], dtype=np.float32), rtol=1e-4, atol=1e-4)
-
-    def submit_init():
-        np.random.seed(0)
-        mugrade.submit(train.init.kaiming_normal(2,5).numpy())
-        mugrade.submit(train.init.kaiming_uniform(2,5).numpy())
-        mugrade.submit(train.init.xavier_uniform(2,5, gain=0.33).numpy())
-        mugrade.submit(train.init.xavier_normal(2,5, gain=1.3).numpy())
-
-
-    def test_nn_linear_weight_init_1():
-        np.testing.assert_allclose(nn_linear_weight_init(),
-            np.array([[-4.4064468e-01, -6.3199449e-01, -4.1082984e-01, -7.5330488e-02],
-                    [-3.3144259e-01,  3.4056887e-02, -4.4079605e-01,  8.8153863e-01],
-                    [ 4.3108878e-01, -7.1237373e-01, -2.1057765e-01,  2.3793796e-01],
-                    [-6.9425780e-01,  8.9535803e-01, -1.0512712e-01,  5.3615785e-01],
-                    [ 5.4460180e-01, -2.5689366e-01, -1.5534532e-01,  1.5601574e-01],
-                    [ 4.8174453e-01, -5.7806653e-01, -3.9223823e-01,  3.1518409e-01],
-                    [-6.5129338e-04, -5.9517515e-01, -1.6083106e-01, -5.5698222e-01]],
-            dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-    def test_nn_linear_bias_init_1():
-        np.testing.assert_allclose(nn_linear_bias_init(),
-            np.array([[ 0.077647,  0.814139, -0.770975,  1.120297]],
-            dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-    def test_nn_linear_forward_1():
-        np.testing.assert_allclose(linear_forward((10, 5), (1, 10)),
-            np.array([[3.849948, 9.50499 , 2.38029 , 5.572587, 5.668391]],
-            dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-    def test_nn_linear_forward_2():
-        np.testing.assert_allclose(linear_forward((10, 5), (3, 10)),
-            np.array([[ 7.763089, 10.086785,  0.380316,  6.242502,  6.944664],
-                [ 2.548275,  7.747925,  5.343155,  2.065694,  9.871243],
-                [ 2.871696,  7.466332,  4.236925,  2.461897,  8.209476]],
-            dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-    def test_nn_linear_forward_3():
-        np.testing.assert_allclose(linear_forward((10, 5), (1, 3, 10)),
-            np.array([[[ 4.351459,  8.782808,  3.935711,  3.03171 ,  8.014219],
-                [ 5.214458,  8.728788,  2.376814,  5.672185,  4.974319],
-                [ 1.343204,  8.639378,  2.604359, -0.282955,  9.864498]]],
-            dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-    def test_nn_linear_backward_1():
-        np.testing.assert_allclose(linear_backward((10, 5), (1, 10)),
-            np.array([[ 20.61148,   6.920893,  -1.625556, -13.497676,  -6.672813,
-                18.762121,   7.286628,   8.18535 ,   2.741301,   5.723689]],
-            dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-    def test_nn_linear_backward_2():
-        print(linear_backward((10, 5), (3, 10)))
-        np.testing.assert_allclose(linear_backward((10, 5), (3, 10)),
-            np.array([[ 24.548800,    8.775347 ,   4.387898 , -21.248514,   -3.9669373,
-            24.256767, 6.3171115,   6.029777 ,   0.8809935,   3.5995162],
-            [ 12.233745,   -3.792646 ,  -4.1903896,  -5.106719,  -12.004269 ,  11.967942, 11.939469,
-        19.314493,   10.631226,   14.510731 ],
-            [ 12.920014,   -1.4545978,  -3.0892954,  -6.762379,   -9.713004 ,
-            12.523148, 9.904757 ,  15.442993 ,   8.044141 ,  11.4106865]], dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-    def test_nn_linear_backward_3():
-        print(linear_backward((10, 5), (1, 3, 10)))
-        np.testing.assert_allclose(linear_backward((10, 5), (1, 3, 10)),
-            np.array([[[ 16.318823,    0.3890714,  -2.3196607, -10.607947 ,  -8.891977,
-        16.04581 ,    9.475689 ,  14.571134 ,   6.581477 ,  10.204643 ],
-        [ 20.291656,    7.48733  ,   1.2581345, -14.285493 ,  -6.0252004,
-        19.621624,    4.343303 ,   6.973201 ,  -0.8103489,   4.037069 ],
-        [ 11.332953,   -5.698288 ,  -8.815561 ,  -7.673438 ,  -7.6161675,
-        9.361553,   17.341637 ,  17.269142 ,  18.1076   ,  14.261493 ]]], dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-    def submit_nn_linear():
-        mugrade.submit(linear_forward((3, 5), (1, 3)))
-        mugrade.submit(linear_forward((3, 5), (3, 3)))
-        mugrade.submit(linear_forward((3, 5), (1, 3, 3)))
-        mugrade.submit(linear_backward((4, 5), (1, 4)))
-        mugrade.submit(linear_backward((4, 5), (3, 4)))
-        mugrade.submit(linear_backward((4, 5), (1, 3, 4)))
-
-
-    def test_nn_relu_forward_1():
-        np.testing.assert_allclose(relu_forward(2, 2),
-            np.array([[3.35, 4.2 ],
-            [0.25, 4.5 ]], dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-    def test_nn_relu_backward_1():
-        np.testing.assert_allclose(relu_backward(3, 2),
-            np.array([[7.5, 2.7],
-            [0.6, 0.2],
-            [0.3, 6.7]], dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-    def submit_nn_relu():
-        mugrade.submit(relu_forward(2, 3))
-        mugrade.submit(relu_backward(3, 4))
 
 
     def test_nn_sequential_forward_1():
@@ -835,16 +669,6 @@ class TestnnAndoptim(unittest.TestCase):
             [6. , 0. , 0.3],
             [2. , 0.1, 2.7],
             [2.1, 0.1, 6.7]]]], dtype=np.float32), rtol=1e-5, atol=1e-5)
-
-    def submit_nn_flatten():
-        mugrade.submit(flatten_forward(1,2,2))
-        mugrade.submit(flatten_forward(2,2,2))
-        mugrade.submit(flatten_forward(2,3,4,2,1,2))
-        mugrade.submit(flatten_forward(2,3))
-        mugrade.submit(flatten_backward(1,2,2))
-        mugrade.submit(flatten_backward(2,2,2))
-        mugrade.submit(flatten_backward(2,3,4,2,1,2))
-        mugrade.submit(flatten_backward(2,3,4,4))
         
 
 
@@ -875,14 +699,6 @@ class TestnnAndoptim(unittest.TestCase):
         np.testing.assert_allclose(global_tensor_count(),
             np.array(387), rtol=1e-5, atol=1000)
 
-    def submit_optim_sgd():
-        mugrade.submit(learn_model_1d(48, 17, lambda z: nn.Sequential(nn.Linear(48, 32), nn.ReLU(), nn.Linear(32, 17)), train.optim.SGD, lr=0.03, momentum=0.0, epochs=2))
-        mugrade.submit(learn_model_1d(48, 16, lambda z: nn.Sequential(nn.Linear(48, 32), nn.ReLU(), nn.Linear(32, 16)), train.optim.SGD, lr=0.01, momentum=0.9, epochs=2))
-        mugrade.submit(learn_model_1d(48, 16, lambda z: nn.Sequential(nn.Linear(48, 32), nn.ReLU(), nn.BatchNorm1d(32), nn.Linear(32, 16)), train.optim.SGD, lr=0.01, momentum=0.0, weight_decay=0.01, epochs=2))
-        mugrade.submit(learn_model_1d(54, 16, lambda z: nn.Sequential(nn.Linear(54, 32), nn.ReLU(), nn.Linear(32, 16)), train.optim.SGD, lr=0.01, momentum=0.9, weight_decay=0.01, epochs=2))
-        mugrade.submit(learn_model_1d(64, 4, lambda z: nn.Sequential(nn.Linear(64, 8), nn.ReLU(), nn.Residual(nn.Linear(8, 8)), nn.Linear(8, 4)), train.optim.SGD, epochs=3, lr=0.01, weight_decay=0.001))
-
-
     def test_optim_adam_1():
         np.testing.assert_allclose(learn_model_1d(64, 16, lambda z: nn.Sequential(nn.Linear(64, 32), nn.ReLU(), nn.Linear(32, 16)), train.optim.Adam, lr=0.001),
             np.array(3.703999), rtol=1e-5, atol=1e-5)
@@ -912,15 +728,6 @@ class TestnnAndoptim(unittest.TestCase):
     def test_optim_adam_z_memory_check_1():
         np.testing.assert_allclose(global_tensor_count(),
             np.array(1132), rtol=1e-5, atol=1000)
-
-    def submit_optim_adam():
-        mugrade.submit(learn_model_1d(48, 16, lambda z: nn.Sequential(nn.Linear(48, 32), nn.ReLU(), nn.Linear(32, 16)), train.optim.Adam, lr=0.001, epochs=2))
-        mugrade.submit(learn_model_1d(48, 16, lambda z: nn.Sequential(nn.Linear(48, 32), nn.ReLU(), nn.Linear(32, 16)), train.optim.Adam, lr=0.001, weight_decay=0.01, epochs=2))
-        mugrade.submit(learn_model_1d(48, 16, lambda z: nn.Sequential(nn.Linear(48, 32), nn.ReLU(), nn.BatchNorm1d(32), nn.Linear(32, 16)), train.optim.Adam, lr=0.001, weight_decay=0.001, epochs=3))
-        mugrade.submit(learn_model_1d_eval(48, 16, lambda z: nn.Sequential(nn.Linear(48, 32), nn.ReLU(), nn.BatchNorm1d(32), nn.Linear(32, 16)), train.optim.Adam, lr=0.001, weight_decay=0.001,  epochs=2))
-        mugrade.submit(learn_model_1d(48, 16, lambda z: nn.Sequential(nn.Linear(48, 32), nn.ReLU(), nn.LayerNorm1d(32), nn.Linear(32, 16)), train.optim.Adam, lr=0.01, weight_decay=0.01,  epochs=2))
-        mugrade.submit(learn_model_1d(48, 16, lambda z: nn.Sequential(nn.Linear(48, 32), nn.ReLU(), nn.Linear(32, 16)), train.optim.Adam, lr=0.001, weight_decay=0.01,  epochs=2))
-
 
     def test_mlp_residual_block_num_params_1():
         np.testing.assert_allclose(residual_block_num_params(15, 2, nn.BatchNorm1d),

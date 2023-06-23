@@ -10,7 +10,7 @@ TENSOR_COUNTER = 0
 
 import numpy as array_api
 
-NDArray = numpy.ndarray
+NDArray = array_api.ndarray
 
 
 class Device:
@@ -31,6 +31,22 @@ class CPUDevice(Device):
 
     def enabled(self):
         return True
+
+    def randn(self, *shape, dtype="float32"):
+        return array_api.random.randn(*shape).astype(dtype)
+    
+    def rand(self, *shape, dtype="float32"):
+        return array_api.random.rand(*shape).astype(dtype)
+    
+    def one_hot(self, n, i, dtype="float32"):
+        return array_api.eye(n, dtype=dtype)[i]
+    
+    def empty(self, shape, dtype="float32"):
+        return array_api.empty(shape, dtype=dtype)
+    
+    def full(self, shape, fill_value, dtype="float32"):
+        return array_api.full(shape, fill_value, dtype=dtype)
+    
 
 
 def cpu():

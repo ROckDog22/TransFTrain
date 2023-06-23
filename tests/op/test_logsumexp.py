@@ -99,7 +99,3 @@ class TestInit(unittest.TestCase):
         
 if  __name__ == "__main__":
     unittest.main()
-    # suite = unittest.TestSuite()
-    # suite.addTest(TestInit("test_op_logsumexp_forward_1"))
-    # runner = unittest.TextTestRunner()
-    # result = runner.run(suite)
