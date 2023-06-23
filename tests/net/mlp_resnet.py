@@ -1,7 +1,7 @@
 import sys
 sys.path.append('../python')
-import needle as ndl
-import needle.nn as nn
+import TransFTrain as train
+import TransFTrain.nn as nn
 import numpy as np
 import time
 import os
@@ -30,7 +30,7 @@ def epoch(dataloader, model, opt=None):
 
 
 
-def train_mnist(batch_size=100, epochs=10, optimizer=ndl.optim.Adam,
+def train_mnist(batch_size=100, epochs=10, optimizer=train.optim.Adam,
                 lr=0.001, weight_decay=0.001, hidden_dim=100, data_dir="data"):
     np.random.seed(4)
     ### BEGIN YOUR SOLUTION
