@@ -40,7 +40,3 @@ class TestRelu(unittest.TestCase):
 
 if "__main__" == __name__:
     unittest.main()
-    suite = unittest.TestSuite()
-    suite.addTest(TestRelu(""))
-    runner = unittest.TextTestRunner()
-    result = runner.run(suite)
