@@ -41,4 +41,8 @@ class TestDropout(unittest.TestCase):
             [1.3513514, 0. , 1.3513514]], dtype=np.float32), rtol=1e-5, atol=1e-5)
 
 if "__main__" == __name__:
-    unittest.main()
+    # unittest.main()
+    suite =unittest.TestSuite()
+    suite.addTest(TestDropout("test_nn_dropout_forward_1"))
+    runner = unittest.TextTestRunner()
+    result = runner.run(suite)

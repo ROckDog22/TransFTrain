@@ -36,7 +36,8 @@ class CPUDevice(Device):
         return array_api.random.randn(*shape).astype(dtype)
     
     def rand(self, *shape, dtype="float32"):
-        return array_api.random.rand(*shape).astype(dtype)
+        a = array_api.random.rand(*shape).astype(dtype)
+        return a
     
     def one_hot(self, n, i, dtype="float32"):
         return array_api.eye(n, dtype=dtype)[i]
@@ -47,7 +48,8 @@ class CPUDevice(Device):
     def full(self, shape, fill_value, dtype="float32"):
         return array_api.full(shape, fill_value, dtype=dtype)
     
-
+    def ones(self, shape, dtype="float32"):
+        return array_api.ones(shape, dtype=dtype)
 
 def cpu():
     """Return cpu device"""

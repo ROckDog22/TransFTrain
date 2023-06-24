@@ -152,7 +152,7 @@ class TestBatchNorm1d(unittest.TestCase):
 
 
 
-    def test_nn_batchnorm_running_grad_1():
+    def test_nn_batchnorm_running_grad_1(self):
         np.testing.assert_allclose(self.batchnorm_running_grad(4, 3),
             np.array([[ 8.7022781e-06, -4.9751252e-06, 9.5367432e-05],
             [ 6.5565109e-06, -7.2401017e-06, -2.3484230e-05],

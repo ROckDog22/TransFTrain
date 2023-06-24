@@ -146,42 +146,55 @@ class BatchNorm1d(Module):
         self.dim = dim
         self.eps = eps
         self.momentum = momentum
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
-
+        self.weight = Parameter(init.ones(dim, device=device, dtype=dtype))
+        self.bias = Parameter(init.zeros(dim, device=device, dtype=dtype))
+        self.running_mean = Parameter(init.zeros(dim, device=device, dtype=dtype))
+        self.running_var = Parameter(init.ones(dim, device=device, dtype=dtype))
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
-
+        M, N = x.shape
+        assert self.dim == N
+        if self.training:
+            mean = (x.sum(axes=0) / M)
+            self.running_mean = (1-self.momentum) * self.running_mean + self.momentum * mean
+            mean = mean.reshape((1, N)).boradcast_to(x.shape)
+            var = ((x-mean)**2).sum(axes=0) / M
+            self.running_var = (1-self.momentum) * self.running_var + self.momentum * var
+            var = var.reshape((1, N)).boradcast_to(x.shape)
+        else:
+            mean = self.running_mean.reshape((1, M)).broadcast_to(x.shape)
+            var = self.running_var.reshape((1, M)).broadcast_to(x.shape)
+        x = (x-mean)/ (var+self.eps)**0.5
+        weight = self.weight.reshape((1, N)).broadcast_to(x.shape)
+        bias = self.bias.reshape((1, N)).broadcast_to(x.shape)
+        return weight * x + bias
 
 class LayerNorm1d(Module):
     def __init__(self, dim, eps=1e-5, device=None, dtype="float32"):
         super().__init__()
         self.dim = dim
         self.eps = eps
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        self.weight = Parameter(init.ones(dim, device=device, dtype=dtype))
+        self.bias = Parameter(init.zeros(dim, device=device, dtype=dtype))
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
-
-
+        M, N = x.shape
+        assert self.dim == N
+        mean = (x.sum(axes=1)/N).reshape((M,1)).broadcast_to(x.shape)
+        var = (((x - mean)**2).sum(axes=1)/N).reshape((M,1)).broadcast_to(x.shape)
+        y = self.weight.boradcast_to(x.shape) * ((x - mean) / (var + self.eps)**0.5) + self.bias.broadcast_to(x.shape)
+        return y
+    
 class Dropout(Module):
     def __init__(self, p = 0.5):
         super().__init__()
         self.p = p
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
-
+        if self.training:
+            mask = init.randb(*x.shape, p = self.p, dtype="float32", device=x.device)
+            x = mask * x / (1 - self.p)
+        return x
 
 class Residual(Module):
     def __init__(self, fn: Module):
@@ -189,9 +202,7 @@ class Residual(Module):
         self.fn = fn
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return self.fn(x) + x
 
 
 
