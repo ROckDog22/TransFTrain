@@ -24,9 +24,13 @@ class SGD(Optimizer):
         self.weight_decay = weight_decay
 
     def step(self):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        for i, w in enumerate(self.params):
+            if w.grad is None:
+                continue
+            grad = w.grad.data + self.weight_decay * w.data
+            self.u[i] = self.momentum * self.u.get(i, 0) + (1 - self.momentum) * grad
+            w.data -= self.lr * self.u[i].data 
+        return 
 
 
 class Adam(Optimizer):
@@ -51,6 +55,16 @@ class Adam(Optimizer):
         self.v = {}
 
     def step(self):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        self.t += 1
+        for i, w in enumerate(self.params):
+            if w.grad is None:
+                continue
+            grad = w.grad.data + self.weight_decay * w.data
+            self.m[i] = self.beta1 * self.m.get(i, 0) + (1 - self.beta1) * grad
+            self.v[i] = self.beta2 * self.v.get(i, 0) + (1 - self.beta2) * grad ** 2
+
+            m̂ = self.m[i] / (1 - self.beta1**self.t)
+            v̂ = self.v[i] / (1 - self.beta2**self.t)
+            w.data = w.data - self.lr * m̂ / (v̂**0.5 + self.eps)
+        return 
+

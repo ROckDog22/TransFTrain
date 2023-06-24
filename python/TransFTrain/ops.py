@@ -164,7 +164,7 @@ class DivScalar(TensorOp):
         self.scalar = scalar
 
     def compute(self, a):
-        return a / self.scalar
+        return (a / self.scalar).astype(a.dtype)
 
     def gradient(self, out_grad, node):
         return out_grad / self.scalar
@@ -414,7 +414,7 @@ def ones_like(array, *, device=None, requires_grad=False):
 
 def restore_shape(original, axes=None):
     if isinstance(axes, int):
-        axes = axes
+        axes = axes,
     shape = [1] * len(original.shape)
     if axes:
         shape = list(original.shape)

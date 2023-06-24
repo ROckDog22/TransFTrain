@@ -52,7 +52,6 @@ def _child_modules(value: object) -> List["Module"]:
 
 
 
-
 class Module:
     def __init__(self):
         self.training = True
@@ -103,7 +102,7 @@ class Linear(Module):
                 dtype = dtype,
                 requires_grad=True
             )
-            self.bias = self.bias.reshape((1, out_features))
+            self.bias = Parameter(self.bias.reshape((1, out_features)))
 
     def forward(self, X: Tensor) -> Tensor:
         ret = X @ self.weight
@@ -136,7 +135,7 @@ class SoftmaxLoss(Module):
     def forward(self, logits: Tensor, y: Tensor):
         N, C = logits.shape
         y_one_hot = init.one_hot(C, y, device = y.device)
-        return 
+        return (ops.logsumexp(logits, 1) - (logits * y_one_hot).sum(1)).sum() / N
 
 
 
@@ -156,10 +155,10 @@ class BatchNorm1d(Module):
         assert self.dim == N
         if self.training:
             mean = (x.sum(axes=0) / M)
-            self.running_mean = (1-self.momentum) * self.running_mean + self.momentum * mean
+            self.running_mean = (1-self.momentum) * self.running_mean + self.momentum * mean.data
             mean = mean.reshape((1, N)).boradcast_to(x.shape)
             var = ((x-mean)**2).sum(axes=0) / M
-            self.running_var = (1-self.momentum) * self.running_var + self.momentum * var
+            self.running_var = (1-self.momentum) * self.running_var + self.momentum * var.data
             var = var.reshape((1, N)).boradcast_to(x.shape)
         else:
             mean = self.running_mean.reshape((1, M)).broadcast_to(x.shape)
