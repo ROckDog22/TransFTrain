@@ -1,4 +1,4 @@
-# TransFTrain ![](https://img.shields.io/badge/version-v0.2.0-brightgreen)
+# TransFTrain ![](https://img.shields.io/badge/version-v0.1.0-brightgreen)
 a simple train framework for personal pytorch learning
 
 # use TransFTrain in main.ipynb
