@@ -8,7 +8,7 @@ import unittest
 import numpy as np
 
 class TestDataLoader(unittest.TestCase):  
-    def test_dataloader_mnist():
+    def test_dataloader_mnist(self):
         batch_size = 1
         mnist_train_dataset = train.data.MNISTDataset("data/train-images-idx3-ubyte.gz",
                                                     "data/train-labels-idx1-ubyte.gz")
@@ -57,19 +57,19 @@ class TestDataLoader(unittest.TestCase):
         assert diff, 'shuffling had no effect on the dataloader.'
 
 
-    def test_dataloader_ndarray():
+    def test_dataloader_ndarray(self):
         for batch_size in [1,10,100]:
-        np.random.seed(0)
-        
-        train_dataset = train.data.NDArrayDataset(np.random.rand(100,10,10))
-        train_dataloader = train.data.DataLoader(dataset=train_dataset,
-                                                    batch_size=batch_size,
-                                                    shuffle=False)
+            np.random.seed(0)
+            
+            train_dataset = train.data.NDArrayDataset(np.random.rand(100,10,10))
+            train_dataloader = train.data.DataLoader(dataset=train_dataset,
+                                                        batch_size=batch_size,
+                                                        shuffle=False)
 
-        for i, batch in enumerate(train_dataloader):
-            batch_x  = batch[0].numpy()
-            truth_x = train_dataset[i * batch_size:(i + 1) * batch_size][0].reshape((batch_size,10,10))
-            np.testing.assert_allclose(truth_x, batch_x)
+            for i, batch in enumerate(train_dataloader):
+                batch_x  = batch[0].numpy()
+                truth_x = train_dataset[i * batch_size:(i + 1) * batch_size][0].reshape((batch_size,10,10))
+                np.testing.assert_allclose(truth_x, batch_x)
 
         batch_size = 1
         np.random.seed(0)

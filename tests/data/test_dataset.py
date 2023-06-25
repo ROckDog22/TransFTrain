@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 
 class TestDataset(unittest.TestCase):     
-    def test_mnist_dataset():
+    def test_mnist_dataset(self):
         # Test dataset sizing
         mnist_train_dataset = train.data.MNISTDataset("data/train-images-idx3-ubyte.gz",
                                                     "data/train-labels-idx1-ubyte.gz")
