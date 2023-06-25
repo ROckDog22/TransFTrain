@@ -147,8 +147,8 @@ class BatchNorm1d(Module):
         self.momentum = momentum
         self.weight = Parameter(init.ones(dim, device=device, dtype=dtype))
         self.bias = Parameter(init.zeros(dim, device=device, dtype=dtype))
-        self.running_mean = Parameter(init.zeros(dim, device=device, dtype=dtype))
-        self.running_var = Parameter(init.ones(dim, device=device, dtype=dtype))
+        self.running_mean = init.zeros(dim, device=device, dtype=dtype)
+        self.running_var = init.ones(dim, device=device, dtype=dtype)
 
     def forward(self, x: Tensor) -> Tensor:
         M, N = x.shape
@@ -191,7 +191,7 @@ class Dropout(Module):
 
     def forward(self, x: Tensor) -> Tensor:
         if self.training:
-            mask = init.randb(*x.shape, p = self.p, dtype="float32", device=x.device)
+            mask = init.randb(*x.shape, p = 1-self.p, dtype="float32", device=x.device)
             x = mask * x / (1 - self.p)
         return x
 

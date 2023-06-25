@@ -30,7 +30,7 @@ class TestResidualBlock(unittest.TestCase):
         output_tensor = ResidualBlock(dim, hidden_dim, norm, drop_prob)(input_tensor)
         return output_tensor.numpy()
     
-    def test_mlp_residual_block_num_params_1(self, ):
+    def test_mlp_residual_block_num_params_1(self):
         np.testing.assert_allclose(self.residual_block_num_params(15, 2, nn.BatchNorm1d),
             np.array(111), rtol=1e-5, atol=1e-5)
 
@@ -52,3 +52,7 @@ class TestResidualBlock(unittest.TestCase):
 
 if "__main__" == __name__:
     unittest.main()
+    # suite = unittest.TestSuite()
+    # suite.addTest(TestResidualBlock("test_mlp_residual_block_num_params_1"))
+    # runner = unittest.TextTestRunner()
+    # result = runner.run(suite)
