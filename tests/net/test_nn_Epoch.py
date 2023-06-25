@@ -49,3 +49,7 @@ class TestResidualBlock(unittest.TestCase):
 
 if "__main__" == __name__:
     unittest.main()
+#     suite = unittest.TestSuite()
+#     suite.addTest(TestResidualBlock("test_mlp_eval_epoch_1"))
+#     runner = unittest.TextTestRunner()
+#     result = runner.run(suite)

@@ -52,7 +52,3 @@ class TestResidualBlock(unittest.TestCase):
 
 if "__main__" == __name__:
     unittest.main()
-    # suite = unittest.TestSuite()
-    # suite.addTest(TestResidualBlock("test_mlp_residual_block_num_params_1"))
-    # runner = unittest.TextTestRunner()
-    # result = runner.run(suite)

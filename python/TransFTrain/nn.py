@@ -64,6 +64,16 @@ class Module:
         return _child_modules(self.__dict__)
 
     def eval(self):
+        
+        """
+        将模型及其子节点的 training 属性都设置为 False，控制仅仅在训练时起作用的layer，dropout，batchnorm
+        
+        Args:
+            无
+        
+        Returns:
+            无
+        """
         self.training = False
         for m in self._children():
             m.training = False
@@ -161,8 +171,8 @@ class BatchNorm1d(Module):
             self.running_var = (1-self.momentum) * self.running_var + self.momentum * var.data
             var = var.reshape((1, N)).boradcast_to(x.shape)
         else:
-            mean = self.running_mean.reshape((1, M)).broadcast_to(x.shape)
-            var = self.running_var.reshape((1, M)).broadcast_to(x.shape)
+            mean = self.running_mean.reshape((1, N)).broadcast_to(x.shape)
+            var = self.running_var.reshape((1, N)).broadcast_to(x.shape)
         x = (x-mean)/ (var+self.eps)**0.5
         weight = self.weight.reshape((1, N)).broadcast_to(x.shape)
         bias = self.bias.reshape((1, N)).broadcast_to(x.shape)
