@@ -6,9 +6,9 @@ from itertools import zip_longest
 from .autograd import NDArray
 from .autograd import Op, Tensor, Value, TensorOp
 from .autograd import TensorTuple, TensorTupleOp
-from .autograd import cpu
-
 import numpy
+
+from .backend_selection import array_api, NDArray, default_device
 
 # NOTE: we will numpy as the array_api
 # to backup our computations, this line will change in later homeworks
@@ -338,7 +338,7 @@ def full(
 ):
     # numpy do not need device argument
     kwargs = {"device": device} if array_api is not numpy else {}
-    device = device if device else cpu()
+    device = device if device else default_device()
 
     if not rand or "dist" not in rand:
         arr = array_api.full(shape, fill_value, dtype=dtype, **kwargs)

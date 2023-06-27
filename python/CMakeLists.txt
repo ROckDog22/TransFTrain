@@ -55,7 +55,7 @@ pybind11_strip(ndarray_backend_cpu)
 # hidden  设置c++的可见性规则，hidden表示隐藏c++目标的符号和可见性，有助于隐藏实现细节和内部符号，提高库的封装性
 set_target_properties(ndarray_backend_cpu
   PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python/TransFTrain/backend_ndarray
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TransFTrain/backend_ndarray
   CXX_VISIBILITY_PRESET "hidden"
 )
 # 使用条件语句来根据系统名称设置目标的属性， darwin 代表macos系统
@@ -95,7 +95,7 @@ if(CUDA_FOUND)
   # directly output to ffi folder
   set_target_properties(ndarray_backend_cuda
     PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python/needle/backend_ndarray
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TransFTrain/backend_ndarray
     CXX_VISIBILITY_PRESET "hidden"
     CUDA_VISIBILITY_PRESET "hidden"
 )
