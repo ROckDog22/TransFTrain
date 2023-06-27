@@ -6,3 +6,4 @@ from . import data
 from .data import *
 from . import nn
 from . import optim
+from .backend_selection import *

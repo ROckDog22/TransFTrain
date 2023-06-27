@@ -8,58 +8,7 @@ import numpy
 LAZY_MODE = False
 TENSOR_COUNTER = 0
 
-import numpy as array_api
-
-NDArray = array_api.ndarray
-
-
-class Device:
-    """Indicates the device supporting an NDArray."""
-
-
-class CPUDevice(Device):
-    """Represents data that sits in CPU"""
-
-    def __repr__(self):
-        return "TransFTrain.cpu()"
-
-    def __hash__(self):
-        return self.__repr__().__hash__()
-
-    def __eq__(self, other):
-        return isinstance(other, CPUDevice)
-
-    def enabled(self):
-        return True
-
-    def randn(self, *shape, dtype="float32"):
-        return array_api.random.randn(*shape).astype(dtype)
-    
-    def rand(self, *shape, dtype="float32"):
-        a = array_api.random.rand(*shape).astype(dtype)
-        return a
-    
-    def one_hot(self, n, i, dtype="float32"):
-        return array_api.eye(n, dtype=dtype)[i]
-    
-    def empty(self, shape, dtype="float32"):
-        return array_api.empty(shape, dtype=dtype)
-    
-    def full(self, shape, fill_value, dtype="float32"):
-        return array_api.full(shape, fill_value, dtype=dtype)
-    
-    def ones(self, shape, dtype="float32"):
-        return array_api.ones(shape, dtype=dtype)
-
-def cpu():
-    """Return cpu device"""
-    return CPUDevice()
-
-
-def all_devices():
-    """return a list of all available devices"""
-    return [cpu()]
-
+from .backend_selection import Device, array_api, NDArray, default_device
 
 class Op:
     """Operator definition."""
