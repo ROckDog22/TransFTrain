@@ -1,4 +1,3 @@
-
 """Core data structures."""
 import needle
 from typing import List, Optional, NamedTuple, Tuple, Union

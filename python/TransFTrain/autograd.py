@@ -206,7 +206,7 @@ class Tensor(Value):
                     array.numpy(), device=device, dtype=dtype
                 )
         else:
-            device = device if device else cpu()
+            device = device if device else default_device()
             cached_data = Tensor._array_from_numpy(array, device=device, dtype=dtype)
 
         self._init(
@@ -277,7 +277,7 @@ class Tensor(Value):
         data = self.realize_cached_data()
         # numpy array always sits on cpu
         if array_api is numpy:
-            return cpu()
+            return default_device()
         return data.device
 
     def backward(self, out_grad=None):
