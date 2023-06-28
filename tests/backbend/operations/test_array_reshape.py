@@ -2,7 +2,6 @@ import unittest
 import numpy as np
 import sys
 sys.path.append('../python')
-# 你需要在.vscode里面添加extra地址 才能找到
 import TransFTrain as train
 from TransFTrain import backend_ndarray as nd
 

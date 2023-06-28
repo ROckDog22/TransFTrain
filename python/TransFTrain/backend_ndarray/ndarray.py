@@ -32,15 +32,15 @@ class BackendDevice:
     def randn(self, *shape, dtype="float32"):
         # note: numpy doesn't support types within standard random routines, and
         # .astype("float32") does work if we're generating a singleton
-        return NDArray(numpy.random.randn(*shape).astype(dtype), device=self)
+        return NDArray(np.random.randn(*shape).astype(dtype), device=self)
 
     def rand(self, *shape, dtype="float32"):
         # note: numpy doesn't support types within standard random routines, and
         # .astype("float32") does work if we're generating a singleton
-        return NDArray(numpy.random.rand(*shape).astype(dtype), device=self)
+        return NDArray(np.random.rand(*shape).astype(dtype), device=self)
 
     def one_hot(self, n, i, dtype="float32"):
-        return NDArray(numpy.eye(n, dtype=dtype)[i], device=self)
+        return NDArray(np.eye(n, dtype=dtype)[i], device=self)
 
     def empty(self, shape, dtype="float32"):
         dtype = "float32" if dtype is None else dtype
@@ -122,6 +122,7 @@ class NDArray:
     @staticmethod
     def compact_strides(shape):
         """ Utility function to compute compact strides """
+        # 3, 3, 4 
         stride = 1
         res = []
         for i in range(1, len(shape) + 1):
@@ -199,6 +200,10 @@ class NDArray:
     def is_compact(self):
         """Return true if array is compact in memory and internal size equals product
         of the shape dimensions"""
+        a= self._strides
+        b = self.compact_strides(self._shape)
+        c = prod(self.shape)
+        d = self._handle.size
         return (
             self._strides == self.compact_strides(self._shape)
             and prod(self.shape) == self._handle.size
@@ -240,9 +245,13 @@ class NDArray:
             NDArray : reshaped array; this will point to the same memory as the original NDArray.
         """
 
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        if self.size != prod(new_shape):
+            raise ValueError(f"cannot reshape array of size {self.shape} into shape {new_shape}")
+        
+        if not self.is_compact():
+            raise ValueError("cannot reshape sparse matrix")
+        
+        return self.as_strided(new_shape, self.compact_strides(new_shape))
 
     def permute(self, new_axes):
         """
@@ -262,10 +271,9 @@ class NDArray:
             to the same memory as the original NDArray (i.e., just shape and
             strides changed).
         """
-
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        shape = tuple(self.shape[a] for a in new_axes)
+        strides = tuple(self.strides[a] for a in new_axes)
+        return self.as_strided(shape, strides)
 
     def broadcast_to(self, new_shape):
         """
@@ -283,12 +291,15 @@ class NDArray:
             NDArray: the new NDArray object with the new broadcast shape; should
             point to the same memory as the original array.
         """
+        if any(a!=b and a!=1 for a, b in zip(self.shape, new_shape)):
+            raise ValueError(
+                f"operands could not be broadcast together with remapped "
+                f"shapes [original->remapped]: {self.shape} and request "
+                f"shape {new_shape}"
+            )
+        strides = tuple(s * (d!=1) for s,d in zip(self.strides, self.shape))
+        return self.as_strided(new_shape, strides)
 
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
-
-    ### Get and set elements
 
     def process_slice(self, sl, dim):
         """ Convert a slice to an explicit start/stop/step """
@@ -549,7 +560,7 @@ def array(a, dtype="float32", device=None):
 
 def empty(shape, dtype="float32", device=None):
     device = device if device is not None else default_device()
-    return devie.empty(shape, dtype)
+    return device.empty(shape, dtype)
 
 
 def full(shape, fill_value, dtype="float32", device=None):

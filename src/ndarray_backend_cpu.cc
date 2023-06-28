@@ -62,9 +62,7 @@ void Compact(const AlignedArray& a, AlignedArray* out, std::vector<uint32_t> sha
    *  void (you need to modify out directly, rather than returning anything; this is true for all the
    *  function will implement here, so we won't repeat this note.)
    */
-  /// BEGIN YOUR SOLUTION
-  
-  /// END YOUR SOLUTION
+   uint32_t *indices = (uint32_t*)calloc(shape.size())
 }
 
 void EwiseSetitem(const AlignedArray& a, AlignedArray* out, std::vector<uint32_t> shape,
