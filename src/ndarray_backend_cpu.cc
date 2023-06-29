@@ -48,15 +48,24 @@ void Fill(AlignedArray* out, scalar_t val) {
   }
 }
 
-void incIndices(uint32_t *indices, const std::vector<int32_t> shape){
+void incIndices(uint32_t *indices, const std::vector<uint32_t> shape){
     int i;
     for (i = shape.size()-1; i>=0; i--){
       if(indices[i] < shape[i] - 1)
-          break
+          break;
     }
     if(i>=0)
       indices[i]++;
-    for(int j)
+    for(int j= i+1; j< shape.size(); ++j)
+      indices[j]= 0;
+}
+
+uint32_t getOffset(const uint32_t *indices, const std::vector<uint32_t>& strides, uint32_t start=0){
+  uint32_t ret = start;
+  for(size_t i=0; i<strides.size(); i++){
+    ret += strides[i] * indices[i];
+  }
+  return ret;
 }
 
 
@@ -80,7 +89,7 @@ void Compact(const AlignedArray& a, AlignedArray* out, std::vector<uint32_t> sha
   // 函数用于在内存中分配指定数量的连续字节，并将其初始化为0，需要分配的元素数量，每个元素的字节大小
    uint32_t *indices = (uint32_t*)calloc(shape.size(), sizeof(uint32_t));
    for(size_t i = 0; i< out->size; ++i, incIndices(indices, shape)){
-    out->ptr[i] = a.ptr[getOffset(indices, strides, offset)]
+    out->ptr[i] = a.ptr[getOffset(indices, strides, offset)];
    }
 }
 
