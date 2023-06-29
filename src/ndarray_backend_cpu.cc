@@ -22,6 +22,11 @@ const size_t ELEM_SIZE = sizeof(scalar_t);
  */
 struct AlignedArray {
   AlignedArray(const size_t size) {
+    // 在构造函数中调用“posix_memalign函数来分配对齐的内存
+    // ptr指向内存的指针，要求的内存对齐字节数
+    // ALIGMENT是一个指向内存分配时的对齐要求，只定义在内存块中的起始地址应该满足对齐边界，256
+    // size *  elesize 要分配的内存块大小，以字节为单位
+    // ret为0表示成功
     int ret = posix_memalign((void**)&ptr, ALIGNMENT, size * ELEM_SIZE);
     if (ret != 0) throw std::bad_alloc();
     this->size = size;
@@ -43,6 +48,16 @@ void Fill(AlignedArray* out, scalar_t val) {
   }
 }
 
+void incIndices(uint32_t *indices, const std::vector<int32_t> shape){
+    int i;
+    for (i = shape.size()-1; i>=0; i--){
+      if(indices[i] < shape[i] - 1)
+          break
+    }
+    if(i>=0)
+      indices[i]++;
+    for(int j)
+}
 
 
 
@@ -62,7 +77,11 @@ void Compact(const AlignedArray& a, AlignedArray* out, std::vector<uint32_t> sha
    *  void (you need to modify out directly, rather than returning anything; this is true for all the
    *  function will implement here, so we won't repeat this note.)
    */
-   uint32_t *indices = (uint32_t*)calloc(shape.size())
+  // 函数用于在内存中分配指定数量的连续字节，并将其初始化为0，需要分配的元素数量，每个元素的字节大小
+   uint32_t *indices = (uint32_t*)calloc(shape.size(), sizeof(uint32_t));
+   for(size_t i = 0; i< out->size; ++i, incIndices(indices, shape)){
+    out->ptr[i] = a.ptr[getOffset(indices, strides, offset)]
+   }
 }
 
 void EwiseSetitem(const AlignedArray& a, AlignedArray* out, std::vector<uint32_t> shape,
