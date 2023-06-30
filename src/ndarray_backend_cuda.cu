@@ -29,6 +29,9 @@ struct CudaArray {
 };
 
 struct CudaDims {
+  // dim3 是一个用于描述线程块和网格维度的数据类型， 它是cuda_runtime api中定义的一个结构题
+  // dim3 结构体包含三个无符号整数成员变量 x,y,z 分别表示三个维度的大小，这三个维度可以用来描述线程块block和网格grid的结构
+  // 在CUDA程序中个，线程块和网格的概念是用于并行执行代码的，线程块是一组并发执行的现场，而网格则是由多个线程块组成的集合
   dim3 block, grid;
 };
 
@@ -73,14 +76,16 @@ void Fill(CudaArray* out, scalar_t val) {
   FillKernel<<<dim.grid, dim.block>>>(out->ptr, val, out->size);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Compact and setitem cals
-////////////////////////////////////////////////////////////////////////////////
+__device__ uint32_t GetOffset(uint32_t gid, const CudaVec& shape, const CudaVec& strides, uint32_t initial){
+    size_t idx = initial;
 
-// Untility function to convert contiguous index i to memory location from strides
+    for(int i = shape.size -1; i>=0; --i){
+      idx += strides.data[i] * (gid % shape.data[i]);
+      gid /= shape.data[i];
+    }
 
-
-
+    return idx;
+}
 
 __global__ void CompactKernel(const scalar_t* a, scalar_t* out, size_t size, CudaVec shape,
                               CudaVec strides, size_t offset) {
@@ -96,11 +101,10 @@ __global__ void CompactKernel(const scalar_t* a, scalar_t* out, size_t size, Cud
    *   strides: vector of strides of out array
    *   offset: offset of out array
    */
-  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+  ssize_t gid = blockIdx.x * blockDim.x + threadIdx.x;
 
-  /// BEGIN YOUR SOLUTION
-  
-  /// END YOUR SOLUTION
+  if(gid < size)
+    out[gid] = a[GetOffset(gid, shape, strides, offset)];
 }
 
 void Compact(const CudaArray& a, CudaArray* out, std::vector<uint32_t> shape,

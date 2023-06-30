@@ -28,5 +28,14 @@ class TestPermute(unittest.TestCase):
         rhs = _A.transpose()
         np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5)
 
+    def test_case3(self):
+        shape = (4, 4)
+        _A = np.random.randint(low=0, high=10, size=shape)
+        A = nd.array(_A, device=nd.cuda())
+        lhs = A.permute((1,0)).compact()
+        assert lhs.is_compact(), "array is not compact"
+        rhs = _A.transpose()
+        np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5)
+
 if __name__ == '__main__':
     unittest.main()
