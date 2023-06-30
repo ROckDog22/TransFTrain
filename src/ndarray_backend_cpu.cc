@@ -6,7 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 
-namespace needle {
+namespace TransFTrain {
 namespace cpu {
 
 #define ALIGNMENT 256
@@ -281,11 +281,11 @@ void ReduceSum(const AlignedArray& a, AlignedArray* out, size_t reduce_size) {
 }
 
 }  // namespace cpu
-}  // namespace needle
+}  // namespace TransFTrain
 
 PYBIND11_MODULE(ndarray_backend_cpu, m) {
   namespace py = pybind11;
-  using namespace needle;
+  using namespace TransFTrain;
   using namespace cpu;
 
   m.attr("__device_name__") = "cpu";

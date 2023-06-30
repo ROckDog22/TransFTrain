@@ -358,9 +358,17 @@ class NDArray:
         )
         assert len(idxs) == self.ndim, "Need indexes equal to number of dimensions"
 
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        shape = [(d := i.stop - i.start) // i.step + d % i.step for i in idxs]
+        strides = [i.step * stride for i, stride in zip(idxs, self.strides)] 
+        offset = sum(i.start * stride for i,stride in zip(idxs, self.strides))
+        return NDArray.make(
+            tuple(shape),
+            strides=tuple(strides),
+            device=self.device,
+            handle=self._handle,
+            offset=offset
+        )
+
 
     def __setitem__(self, idxs, other):
         """Set the values of a view into an array, using the same semantics

@@ -6,41 +6,32 @@ sys.path.append('./python')
 import TransFTrain as train
 import TransFTrain.backend_ndarray as nd
 import numpy as np
-class TestGetitem(unittest.TestCase):
+class TestReshape(unittest.TestCase):
     def test_case1(self):
-        shape = (8, 8)
+        shape = (4, 3)
         _A = np.random.randint(low=0, high=10, size=shape)
         A = nd.array(_A, device=nd.cpu())
-        lhs = A[4:, 4:].compact()
+        lhs = A.reshape((2, 2, 3)).compact()
         assert lhs.is_compact(), "array is not compact"
-        rhs = _A[4:, 4:]
-        np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5)
-    
-    def test_case2(self):
-        shape = (8, 8)
-        _A = np.random.randint(low=0, high=10, size=shape)
-        A = nd.array(_A, device=nd.cpu())
-        lhs = A[4:, 4:].compact()
-        assert lhs.is_compact(), "array is not compact"
-        rhs = _A[4:, 4:]
+        rhs = _A.reshape(2, 2, 3)
         np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5)
 
     def test_case2(self):
-        shape = (8, 8, 2, 2, 2, 2)
+        shape = (16, 16)
         _A = np.random.randint(low=0, high=10, size=shape)
         A = nd.array(_A, device=nd.cpu())
-        lhs = A[1:3, 5:8, 1:2, 0:1, 0:1, 1:2].compact()
+        lhs = A.reshape((2, 4, 2, 2, 2, 2, 2)).compact()
         assert lhs.is_compact(), "array is not compact"
-        rhs = _A[1:3, 5:8, 1:2, 0:1, 0:1, 1:2]
+        rhs = _A.reshape(2, 4, 2, 2, 2, 2, 2)
         np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5)
 
     def test_case3(self):
-        shape = (7, 8)
+        shape = (2, 4, 2, 2, 2, 2, 2)
         _A = np.random.randint(low=0, high=10, size=shape)
         A = nd.array(_A, device=nd.cpu())
-        lhs = A.permute((1,0))[3:7,2:5].compact()
+        lhs = A.reshape((16, 16)).compact()
         assert lhs.is_compact(), "array is not compact"
-        rhs = _A.transpose()[3:7,2:5]
+        rhs = _A.reshape(16, 16)
         np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5)
 
 if __name__ == '__main__':

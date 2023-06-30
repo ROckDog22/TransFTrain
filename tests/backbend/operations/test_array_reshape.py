@@ -5,31 +5,7 @@ sys.path.append('../python')
 import TransFTrain as train
 from TransFTrain import backend_ndarray as nd
 
-params = [{
-        "shape": (4, 4),
-        "np_fn": lambda X: X.transpose(),
-        "nd_fn": lambda X: X.permute((1, 0))
-        },
-        {
-        "shape": (4, 1, 4),
-        "np_fn": lambda X: np.broadcast_to(X, shape=(4, 5, 4)),
-        "nd_fn": lambda X: X.broadcast_to((4, 5, 4))
-        },
-        {
-        "shape": (4, 3),
-        "np_fn": lambda X: X.reshape(2, 2, 3),
-        "nd_fn": lambda X: X.reshape((2, 2, 3))
-        },
-        {
-        "shape": (16, 16), # testing for compaction of large ndims array
-        "np_fn": lambda X: X.reshape(2, 4, 2, 2, 2, 2, 2),
-        "nd_fn": lambda X: X.reshape((2, 4, 2, 2, 2, 2, 2))
-        },
-        {
-        "shape": (2, 4, 2, 2, 2, 2, 2), # testing for compaction of large ndims array
-        "np_fn": lambda X: X.reshape(16, 16),
-        "nd_fn": lambda X: X.reshape((16, 16))
-        },
+params = [
         {
         "shape": (8, 8),
         "np_fn": lambda X: X[4:,4:],
@@ -47,7 +23,7 @@ params = [{
         }
     ]
 
-ids=["transpose", "broadcast_to", "reshape1", "reshape2", "reshape3", "getitem1", "getitem2", "transposegetitem"]
+ids=["getitem1", "getitem2", "transposegetitem"]
 
 def compare_strides(a_np, a_nd):
     size = a_np.itemsize

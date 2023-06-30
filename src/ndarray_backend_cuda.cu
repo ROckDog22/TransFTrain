@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace needle {
+namespace TransFTrain {
 namespace cuda {
 
 #define BASE_THREAD_NUM 256
@@ -299,11 +299,11 @@ void ReduceSum(const CudaArray& a, CudaArray* out, size_t reduce_size) {
 }
 
 }  // namespace cuda
-}  // namespace needle
+}  // namespace TransFTrain
 
 PYBIND11_MODULE(ndarray_backend_cuda, m) {
   namespace py = pybind11;
-  using namespace needle;
+  using namespace TransFTrain;
   using namespace cuda;
 
   m.attr("__device_name__") = "cuda";

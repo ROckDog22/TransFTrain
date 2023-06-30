@@ -37,5 +37,16 @@ class TestPermute(unittest.TestCase):
         rhs = np.broadcast_to(_A, shape=(4, 5, 4))
         np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5)
 
+
+    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    def test_case3(self):
+        shape = (4, 1, 4)
+        _A = np.random.randint(low=0, high=10, size=shape)
+        A = nd.array(_A, device=nd.cuda())
+        lhs = A.broadcast_to((4,5,4)).compact()
+        assert lhs.is_compact(), "array is not compact"
+        rhs = np.broadcast_to(_A, shape=(4, 5, 4))
+        np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5)
+
 if __name__ == '__main__':
     unittest.main()
