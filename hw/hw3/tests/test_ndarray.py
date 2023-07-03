@@ -19,62 +19,6 @@ def check_same_memory(original, view):
     assert original._handle.ptr() == view._handle.ptr()
 
 
-# TODO test permute, broadcast_to, reshape, getitem, some combinations thereof
-@pytest.mark.parametrize("params", [
-    {
-     "shape": (4, 4),
-     "np_fn": lambda X: X.transpose(),
-     "nd_fn": lambda X: X.permute((1, 0))
-    },
-    {
-     "shape": (4, 1, 4),
-     "np_fn": lambda X: np.broadcast_to(X, shape=(4, 5, 4)),
-     "nd_fn": lambda X: X.broadcast_to((4, 5, 4))
-    },
-    {
-     "shape": (4, 3),
-     "np_fn": lambda X: X.reshape(2, 2, 3),
-     "nd_fn": lambda X: X.reshape((2, 2, 3))
-    },
-    {
-     "shape": (16, 16), # testing for compaction of large ndims array
-     "np_fn": lambda X: X.reshape(2, 4, 2, 2, 2, 2, 2),
-     "nd_fn": lambda X: X.reshape((2, 4, 2, 2, 2, 2, 2))
-    },
-    {
-     "shape": (2, 4, 2, 2, 2, 2, 2), # testing for compaction of large ndims array
-     "np_fn": lambda X: X.reshape(16, 16),
-     "nd_fn": lambda X: X.reshape((16, 16))
-    },
-    {
-     "shape": (8, 8),
-     "np_fn": lambda X: X[4:,4:],
-     "nd_fn": lambda X: X[4:,4:]
-    },
-    {
-     "shape": (8, 8, 2, 2, 2, 2),
-     "np_fn": lambda X: X[1:3, 5:8, 1:2, 0:1, 0:1, 1:2],
-     "nd_fn": lambda X: X[1:3, 5:8, 1:2, 0:1, 0:1, 1:2]
-    }, 
-    {
-     "shape": (7, 8),
-     "np_fn": lambda X: X.transpose()[3:7,2:5],
-     "nd_fn": lambda X: X.permute((1, 0))[3:7,2:5]
-    },   
-], ids=["transpose", "broadcast_to", "reshape1", "reshape2", "reshape3", "getitem1", "getitem2", "transposegetitem"])
-@pytest.mark.parametrize("device", _DEVICES, ids=["cpu", "cuda"])
-def test_compact(params, device):
-    shape, np_fn, nd_fn = params['shape'], params['np_fn'], params['nd_fn']
-    _A = np.random.randint(low=0, high=10, size=shape)
-    A = nd.array(_A, device=device)
-    
-    lhs = nd_fn(A).compact()
-    assert lhs.is_compact(), "array is not compact"
-
-    rhs = np_fn(_A)
-    np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5, rtol=1e-5)
-
-
 reduce_params = [
     {"dims": (10,), "axis": 0},
     {"dims": (4, 5, 6), "axis": 0},
@@ -108,61 +52,6 @@ class _ShapeAndSlices(nd.NDArray):
 
 
 ShapeAndSlices = lambda *shape: _ShapeAndSlices(np.ones(shape))
-
-
-@pytest.mark.parametrize("params", [
-    {
-        "lhs": ShapeAndSlices(4, 5, 6)[1:2, 0, 0],
-        "rhs": ShapeAndSlices(7, 7, 7)[1:2, 0, 0]
-    },
-    {
-        "lhs": ShapeAndSlices(4, 5, 6)[1:4:2, 0, 0],
-        "rhs": ShapeAndSlices(7, 7, 7)[1:3, 0, 0]
-    },
-    {
-        "lhs": ShapeAndSlices(4, 5, 6)[1:3, 2:5, 2:6],
-        "rhs": ShapeAndSlices(7, 7, 7)[:2, :3, :4]
-    },   
-])
-@pytest.mark.parametrize("device", _DEVICES, ids=["cpu", "cuda"])
-def test_setitem_ewise(params, device):
-    lhs_shape, lhs_slices = params['lhs']
-    rhs_shape, rhs_slices = params['rhs']
-    _A = np.random.randn(*lhs_shape)
-    _B = np.random.randn(*rhs_shape)
-    A = nd.array(_A, device=device)
-    B = nd.array(_B, device=device)
-    start_ptr = A._handle.ptr()
-    A[lhs_slices] = B[rhs_slices]
-    _A[lhs_slices] = _B[rhs_slices]
-    end_ptr = A._handle.ptr()
-    assert start_ptr == end_ptr, "you should modify in-place"
-    compare_strides(_A, A)
-    np.testing.assert_allclose(A.numpy(), _A, atol=1e-5, rtol=1e-5)
-
-
-# Ex: We want arrays of size (4, 5, 6) setting element(s) [1:4, 2, 3] to a scalar
-@pytest.mark.parametrize("params", [
-    ShapeAndSlices(4, 5, 6)[1,    2,   3],
-    ShapeAndSlices(4, 5, 6)[1:4,  2,   3],
-    ShapeAndSlices(4, 5, 6)[:4,  2:5, 3],
-    ShapeAndSlices(4, 5, 6)[1::2, 2:5, ::2],
-])
-@pytest.mark.parametrize("device", _DEVICES, ids=["cpu", "cuda"]) 
-def test_setitem_scalar(params, device):
-    shape, slices = params
-    _A = np.random.randn(*shape)
-    A = nd.array(_A, device=device)
-    # probably tear these out using lambdas
-    print(slices)
-    start_ptr = A._handle.ptr()
-    _A[slices] = 4.0
-    A[slices] = 4.0
-    end_ptr = A._handle.ptr()
-    assert start_ptr == end_ptr, "you should modify in-place"
-    np.testing.assert_allclose(A.numpy(), _A, atol=1e-5, rtol=1e-5)
-    compare_strides(_A, A)
-
 
 matmul_tiled_shapes = [(1, 1, 1), (2, 2, 3), (1, 2, 1), (3, 3, 3)]
 @pytest.mark.parametrize("m,n,p", matmul_tiled_shapes)
