@@ -6,6 +6,16 @@ sys.path.append('./python')
 import TransFTrain as train
 import TransFTrain.backend_ndarray as nd
 import numpy as np
+
+def compare_strides(a_np, a_nd):
+    size = a_np.itemsize
+    assert tuple([x // size for x in a_np.strides]) == a_nd.strides
+
+
+def check_same_memory(original, view):
+    assert original._handle.ptr() == view._handle.ptr()
+
+
 class TestPermute(unittest.TestCase):
     def setUp(self):
         # 1 1 2 3
@@ -37,5 +47,76 @@ class TestPermute(unittest.TestCase):
         rhs = _A.transpose()
         np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5)
 
+    def test_permute_cpu(self):
+        permute_params = [
+            {"dims": (4, 5, 6), "axes": (0, 1, 2)},
+            {"dims": (4, 5, 6), "axes": (1, 0, 2)},
+            {"dims": (4, 5, 6), "axes": (2, 1, 0)},
+        ]       
+        for params in permute_params:
+            dims = params['dims']
+            axes = params['axes']
+            _A = np.random.randn(*dims)
+            A = nd.array(_A, device=nd.cpu())
+            lhs = np.transpose(_A, axes=axes)
+            rhs = A.permute(axes)
+            np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
+            compare_strides(lhs, rhs)
+            check_same_memory(A, rhs)
+
+
+    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    def test_permute_cuda(self):
+        permute_params = [
+            {"dims": (4, 5, 6), "axes": (0, 1, 2)},
+            {"dims": (4, 5, 6), "axes": (1, 0, 2)},
+            {"dims": (4, 5, 6), "axes": (2, 1, 0)},
+        ]       
+        for params in permute_params:
+            dims = params['dims']
+            axes = params['axes']
+            _A = np.random.randn(*dims)
+            A = nd.array(_A, device=nd.cuda())
+            lhs = np.transpose(_A, axes=axes)
+            rhs = A.permute(axes)
+            np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
+            compare_strides(lhs, rhs)
+            check_same_memory(A, rhs)
+
+    def test_permute_cpu(self):
+        permute_params = [
+        {"dims": (4, 5, 6), "axes": (0, 1, 2)},
+        {"dims": (4, 5, 6), "axes": (1, 0, 2)},
+        {"dims": (4, 5, 6), "axes": (2, 1, 0)},
+        ]
+        for params in permute_params:
+            dims = params['dims']
+            axes = params['axes']
+            _A = np.random.randn(*dims)
+            A = nd.array(_A, device=nd.cpu())
+            lhs = np.transpose(_A, axes=axes)
+            rhs = A.permute(axes)
+            np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
+            compare_strides(lhs, rhs)
+            check_same_memory(A, rhs)
+
+    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    def test_permute_cuda(self):
+        permute_params = [
+        {"dims": (4, 5, 6), "axes": (0, 1, 2)},
+        {"dims": (4, 5, 6), "axes": (1, 0, 2)},
+        {"dims": (4, 5, 6), "axes": (2, 1, 0)},
+        ]
+        for params in permute_params:
+            dims = params['dims']
+            axes = params['axes']
+            _A = np.random.randn(*dims)
+            A = nd.array(_A, device=nd.cuda())
+            lhs = np.transpose(_A, axes=axes)
+            rhs = A.permute(axes)
+            np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
+            compare_strides(lhs, rhs)
+            check_same_memory(A, rhs)
+    
 if __name__ == '__main__':
     unittest.main()

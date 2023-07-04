@@ -6,6 +6,17 @@ sys.path.append('./python')
 import TransFTrain as train
 import TransFTrain.backend_ndarray as nd
 import numpy as np
+
+
+def compare_strides(a_np, a_nd):
+    size = a_np.itemsize
+    assert tuple([x // size for x in a_np.strides]) == a_nd.strides
+
+
+def check_same_memory(original, view):
+    assert original._handle.ptr() == view._handle.ptr()
+
+
 class TestReshape(unittest.TestCase):
     def test_case1(self):
         shape = (4, 3)
@@ -60,6 +71,40 @@ class TestReshape(unittest.TestCase):
         assert lhs.is_compact(), "array is not compact"
         rhs = _A.reshape(16, 16)
         np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5)
+
+    def test_reshape_cpu(self):
+        reshape_params = [
+            {"shape": (8, 16), "new_shape": (2, 4, 16)},
+            {"shape": (8, 16), "new_shape": (8, 4, 2, 2)},
+        ]
+        for params in reshape_params:
+            shape = params['shape']
+            new_shape = params['new_shape']
+            _A = np.random.randn(*shape)
+            A = nd.array(_A, device=nd.cpu())
+            lhs = _A.reshape(*new_shape)
+            rhs = A.reshape(new_shape)
+            np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
+            compare_strides(lhs, rhs)
+            check_same_memory(A, rhs)
+
+
+
+    def test_reshape_cuda(self):
+        reshape_params = [
+            {"shape": (8, 16), "new_shape": (2, 4, 16)},
+            {"shape": (8, 16), "new_shape": (8, 4, 2, 2)},
+        ]
+        for params in reshape_params:
+            shape = params['shape']
+            new_shape = params['new_shape']
+            _A = np.random.randn(*shape)
+            A = nd.array(_A, device=nd.cuda())
+            lhs = _A.reshape(*new_shape)
+            rhs = A.reshape(new_shape)
+            np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
+            compare_strides(lhs, rhs)
+            check_same_memory(A, rhs)
 
 if __name__ == '__main__':
     unittest.main()

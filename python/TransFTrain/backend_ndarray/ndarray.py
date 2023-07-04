@@ -476,11 +476,6 @@ class NDArray:
         self.device.ewise_exp(self.compact()._handle, out._handle)
         return out
 
-    def tanh(self):
-        out = NDArray.make(self.shape, device=self.device)
-        self.device.ewise_tanh(self.compact()._handle, out._handle)
-        return out
-
     ### Matrix multiplication
     def __matmul__(self, other):
         """Matrix multiplication of two arrays.  This requires that both arrays

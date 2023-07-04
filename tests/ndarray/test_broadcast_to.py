@@ -6,6 +6,15 @@ sys.path.append('./python')
 import TransFTrain as train
 import TransFTrain.backend_ndarray as nd
 import numpy as np
+
+def compare_strides(a_np, a_nd):
+    size = a_np.itemsize
+    assert tuple([x // size for x in a_np.strides]) == a_nd.strides
+
+
+def check_same_memory(original, view):
+    assert original._handle.ptr() == view._handle.ptr()
+
 class TestPermute(unittest.TestCase):
     def setUp(self):
         # 1 1 2 3
@@ -48,6 +57,37 @@ class TestPermute(unittest.TestCase):
         assert lhs.is_compact(), "array is not compact"
         rhs = np.broadcast_to(_A, shape=(4, 5, 4))
         np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5)
+
+
+
+    def test_broadcast_to_cpu(self):
+        broadcast_params = [
+            {"from_shape": (1, 3, 4), "to_shape": (6, 3, 4)},
+        ]
+        for params in broadcast_params:
+            from_shape, to_shape = params['from_shape'], params['to_shape']
+            _A = np.random.randn(*from_shape)
+            A = nd.array(_A, device=nd.cpu())
+            lhs = np.broadcast_to(_A, shape=to_shape)
+            rhs = A.broadcast_to(to_shape)
+            np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
+            compare_strides(lhs, rhs)
+            check_same_memory(A, rhs)
+
+    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    def test_broadcast_to_cuda(self):
+        broadcast_params = [
+            {"from_shape": (1, 3, 4), "to_shape": (6, 3, 4)},
+        ]
+        for params in broadcast_params:
+            from_shape, to_shape = params['from_shape'], params['to_shape']
+            _A = np.random.randn(*from_shape)
+            A = nd.array(_A, device=nd.cuda())
+            lhs = np.broadcast_to(_A, shape=to_shape)
+            rhs = A.broadcast_to(to_shape)
+            np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
+            compare_strides(lhs, rhs)
+            check_same_memory(A, rhs)
 
 if __name__ == '__main__':
     unittest.main()

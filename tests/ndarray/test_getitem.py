@@ -6,6 +6,15 @@ sys.path.append('./python')
 import TransFTrain as train
 import TransFTrain.backend_ndarray as nd
 import numpy as np
+
+def compare_strides(a_np, a_nd):
+    size = a_np.itemsize
+    assert tuple([x // size for x in a_np.strides]) == a_nd.strides
+
+
+def check_same_memory(original, view):
+    assert original._handle.ptr() == view._handle.ptr()
+
 class TestGetitem(unittest.TestCase):
     def test_case1(self):
         shape = (8, 8)
@@ -64,7 +73,42 @@ class TestGetitem(unittest.TestCase):
         rhs = _A.transpose()[3:7,2:5]
         np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5)
 
-    
+    def test_getitem_cpu(self):
+        getitem_params = [
+            {"shape": (8, 16), "fn": lambda X: X[3:4, 3:4]},
+            {"shape": (8, 16), "fn": lambda X: X[1:2, 1:3]},
+            {"shape": (8, 16), "fn": lambda X: X[3:4, 1:4]},
+            {"shape": (8, 16), "fn": lambda X: X[1:4, 3:4]},
+        ]
+        for params in getitem_params:
+            shape = params['shape']
+            fn = params['fn']
+            _A = np.random.randn(5, 5)
+            A = nd.array(_A, device=nd.cpu())
+            lhs = fn(_A)
+            rhs = fn(A)
+            np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
+            compare_strides(lhs, rhs)
+            check_same_memory(A, rhs)
+
+    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    def test_getitem_cuda(self):
+        getitem_params = [
+            {"shape": (8, 16), "fn": lambda X: X[3:4, 3:4]},
+            {"shape": (8, 16), "fn": lambda X: X[1:2, 1:3]},
+            {"shape": (8, 16), "fn": lambda X: X[3:4, 1:4]},
+            {"shape": (8, 16), "fn": lambda X: X[1:4, 3:4]},
+        ]
+        for params in getitem_params:
+            shape = params['shape']
+            fn = params['fn']
+            _A = np.random.randn(5, 5)
+            A = nd.array(_A, device=nd.cuda())
+            lhs = fn(_A)
+            rhs = fn(A)
+            np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
+            compare_strides(lhs, rhs)
+            check_same_memory(A, rhs)
 
 if __name__ == '__main__':
     unittest.main()
