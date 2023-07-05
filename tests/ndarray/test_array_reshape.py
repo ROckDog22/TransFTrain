@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import sys
-sys.path.append('../python')
+sys.path.append('./python')
 import TransFTrain as train
 from TransFTrain import backend_ndarray as nd
 
