@@ -5,7 +5,15 @@
 
 #include <iostream>
 #include <sstream>
-
+// global, device, host是用于cuda c/c++代码中的限定符， 用于定义函数或变量的执行位置和内存类型，
+//  global 用于定义在gpu上执行的函数，被称为内核函数，它们可以由主机cpu调用，并在GPU上的多个线程中并行执行，
+// 内核函数通常用于对GPU数据进行计算
+//  device这个限定符用于定义只能在GPU上执行并且只能从GPU代码访问的函数或变量，device的函数可以从其他设备代码，如
+// 设备函数或内核函数调用，设备变量存储在GPU的内存中，并可以被GPU线程访问
+// host 用于定义只能在CPU上执行，并且只能从主机代码访问的函数或变量，host的函数可以从主机CPU代码调用，主机变量存储
+// 在主机的内存中，并可以被CPU代码访问
+// 这些限定符允许开发者指定函数或变量的存放位置和访问方式，通过适当地使用这些限定符号，您可以控制代码的执行位置和内存类型
+// 
 namespace TransFTrain {
 namespace cuda {
 
@@ -61,10 +69,6 @@ CudaVec VecToCuda(const std::vector<uint32_t>& x) {
   }
   return shape;
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// Fill call
-////////////////////////////////////////////////////////////////////////////////
 
 __global__ void FillKernel(scalar_t* out, scalar_t val, size_t size) {
   size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -130,7 +134,12 @@ void Compact(const CudaArray& a, CudaArray* out, std::vector<uint32_t> shape,
                                          VecToCuda(strides), offset);
 }
 
-
+__global__ void EwiseSetitemKernel(const scalar_t* a, scalar_t* out, size_t size, CudaVec shape, CudaVec strides, size_t offset) {
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+  if(gid < size){
+    out[GetOffset((gid), shape, strides, offset)] = a[gid];
+  }
+}
 
 
 void EwiseSetitem(const CudaArray& a, CudaArray* out, std::vector<uint32_t> shape,
@@ -146,12 +155,16 @@ void EwiseSetitem(const CudaArray& a, CudaArray* out, std::vector<uint32_t> shap
    *   strides: strides of the *out* array (not a, which has compact strides)
    *   offset: offset of the *out* array (not a, which has zero offset, being compact)
    */
-  /// BEGIN YOUR SOLUTION
-  
-  /// END YOUR SOLUTION
+  CudaDims dim = CudaOneDim(a.size);
+  EwiseSetitemKernel<<<dim.grid, dim.block>>>(a.ptr, out->ptr, a.size, VecToCuda(shape), VecToCuda(strides), offset);
 }
 
-
+__global__ void ScalarSetitemKernel(scalar_t val, scalar_t* out, size_t size, CudaVec shape, CudaVec strides, size_t offset){
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+  if (gid < size) {
+    out[GetOffset((gid), shape, strides, offset)] = val;
+  }
+}
 
 
 void ScalarSetitem(size_t size, scalar_t val, CudaArray* out, std::vector<uint32_t> shape,
@@ -169,14 +182,10 @@ void ScalarSetitem(size_t size, scalar_t val, CudaArray* out, std::vector<uint32
    *   strides: strides of the out array
    *   offset: offset of the out array
    */
-  /// BEGIN YOUR SOLUTION
-  
-  /// END YOUR SOLUTION
+  CudaDims dim = CudaOneDim(size);
+  ScalarSetitemKernel<<<dim.grid, dim.block>>>(val, out->ptr, size, VecToCuda(shape), VecToCuda(strides), offset);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Elementwise and scalar operations
-////////////////////////////////////////////////////////////////////////////////
 
 __global__ void EwiseAddKernel(const scalar_t* a, const scalar_t* b, scalar_t* out, size_t size) {
   size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -204,35 +213,74 @@ void ScalarAdd(const CudaArray& a, scalar_t val, CudaArray* out) {
   ScalarAddKernel<<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size);
 }
 
-/**
- * In the code the follows, use the above template to create analogous elementise
- * and and scalar operators for the following functions.  See the numpy backend for
- * examples of how they should work.
- *   - EwiseMul, ScalarMul
- *   - EwiseDiv, ScalarDiv
- *   - ScalarPower
- *   - EwiseMaximum, ScalarMaximum
- *   - EwiseEq, ScalarEq
- *   - EwiseGe, ScalarGe
- *   - EwiseLog
- *   - EwiseExp
- *   - EwiseTanh
- *
- * If you implement all these naively, there will be a lot of repeated code, so
- * you are welcome (but not required), to use macros or templates to define these
- * functions (however you want to do so, as long as the functions match the proper)
- * signatures above.
- */
 
-/// BEGIN YOUR SOLUTION
+__global__ void EwiseMulKernel(const scalar_t* a, const scalar_t* b, scalar_t* out, size_t size){
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+  if(gid < size)
+    out[gid] = a[gid] * b[gid];
+}
 
-/// END YOUR SOLUTION
-
-////////////////////////////////////////////////////////////////////////////////
-// Elementwise and scalar operations
-////////////////////////////////////////////////////////////////////////////////
+void EwiseMul(const CudaArray& a, const CudaArray& b, CudaArray* out){
+  CudaDims dim = CudaOneDim(out->size);
+  ScalarMulKernel<<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size);
+}
 
 
+__global__ void  ScalarMulKernel(const scalar_t* a, scalar_t val, scalar_t* out, size_t size){
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+  if(gid < size){
+    out[gid] = a[gid] * val;
+  }
+}
+
+void ScalarMul(const CudaArray& a, scalar_t val, CudaArray* out){
+  CudaDims dim = CudaOneDim(out->size);
+  ScalarMulKernel<<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size);
+}
+
+
+__global__ void EwiseDivKernel(const scalar_t* a, const scalar_t* b, scalar_t* out, size_t size){
+  size_t gid = blockIdx.x*blockDim.x + threadIdx.x;
+  if(gid < size){
+    out[gid] = a[gid] / b[gid];
+  }
+}
+
+void EwiseDiv(const CudaArray& a, CudaArary& b, CudaArray * out){
+  CudaDims dim = CudaOneDim(out->size);
+  EwiseDivKernel<<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size);
+}
+
+__global__ void ScalarDivKernel(const scalar_t * a, const scalar_t val, const scalar_t out, size_t size){
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+  if (gid < size){
+    out[gid] = a[gid] / val;
+  }
+}
+
+void ScalarDiv(const CudaArray& a, scalar_t val, CudaArray* out){
+  CudaDims dim = CudaOneDim(out->size);
+  ScalarDivKernel<<<dim.grid, dim.block>>>(a.ptr, val, out->ptr, out->size);
+}
+
+__global__ void EwiseMaximumKernel(const scalar_t* a, const scalar_t* b, scalar_t * out, size_t size){
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+  if(gid < size){
+    out[gid] = (a[gid] < b[gid]) ? b[gid] : a[gid];
+  }
+}
+
+void EwiseMaximum(const CudaArray& a, const CudaArray& b, CudaArray* out){
+  CudaDims dim = CudaOneDim(out->size);
+  EwiseMaximumKernel<<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size);
+}
+
+__global__ void ScalarMaximumKernel(const scalar_t* a, size_t val, scalar_t * out, size_t size){
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+  if(gid< size){
+    out[gid] = 
+  }
+}
 
 void Matmul(const CudaArray& a, const CudaArray& b, CudaArray* out, uint32_t M, uint32_t N,
             uint32_t P) {
