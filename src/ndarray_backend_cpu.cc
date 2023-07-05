@@ -207,13 +207,13 @@ void ScalarEq(const AlignedArray& a, scalar_t val, AlignedArray* out){
 
 void EwiseGe(const AlignedArray& a, const AlignedArray& b, AlignedArray* out){
   for(size_t i=0; i< a.size; ++i){
-    out->ptr[i] = a.ptr[i] > b.ptr[i];
+    out->ptr[i] = a.ptr[i] >= b.ptr[i];
   }
 }
 
 void ScalarGe(const AlignedArray& a, scalar_t val, AlignedArray* out){
   for(size_t i=0; i<a.size; i++){
-    out->ptr[i] = a.ptr[i] > val;
+    out->ptr[i] = a.ptr[i] >= val;
   }
 }
 
@@ -248,14 +248,12 @@ void Matmul(const AlignedArray& a, const AlignedArray& b, AlignedArray* out, uin
    *   n: columns of a / rows of b
    *   p: columns of b / out
    */
-    std::fill(out->ptr, out->ptr + m*n, 0.0);
-    for (size_t i=0; i<m; i++){
-      for (size_t j=0; j<p; j++){
-        for (size_t k=0; k<n; k++){
-          out->ptr[i*p+j] += a.ptr[i*n + k] * b.ptr[k*p + j];
-        }
-      }
-    }
+  // todo 这一部分没看完
+    std::fill(out->ptr, out->ptr + m*p, 0.0);
+    for (size_t i = 0; i < m; ++i)
+        for (size_t j = 0; j < p; ++j)
+            for (size_t k = 0; k < n; ++k)
+                out->ptr[i*p+j] += a.ptr[n*i+k] * b.ptr[k*p+j];
 }
 
 // restrict 是一种特殊的限定符，通常告知编译器该指针是一个独占访问的指针，即在指针的生命周期内
@@ -284,17 +282,14 @@ inline void AlignedDot(const float* __restrict__ a,
 // 从而帮助编译器进行优化 builtinassumealigned是编译器内置的函数，接受一个指针a和一个对齐方式的表达式
 // tile * elem_size， 该函数用于提示编译器，指针是按照什么方式进行对齐
 // 优化代码，使用对齐的加载/存储指令
-  a = (const float*)__builtin_assume_aligned(a, TILE * ELEM_SIZE);
-  b = (const float*)__builtin_assume_aligned(b, TILE * ELEM_SIZE);
-  out = (float*)__builtin_assume_aligned(out, TILE * ELEM_SIZE);
-  
-  for (size_t i=0; i<TILE; ++i){
-    for (size_t j=0; j<TILE; ++j){
-      for (size_t k=0; k<TILE; ++k){
-        out[i*TILE+j] = a[i*TILE+k] * a[k*TILE+j];
-      }
-    }
-  }
+    a = (const float*)__builtin_assume_aligned(a, TILE * ELEM_SIZE);
+    b = (const float*)__builtin_assume_aligned(b, TILE * ELEM_SIZE);
+    out = (float*)__builtin_assume_aligned(out, TILE * ELEM_SIZE);
+
+    for (size_t i = 0; i < TILE; ++i)
+        for (size_t j = 0; j < TILE; ++j)
+            for (size_t k = 0; k < TILE; ++k)
+                out[i*TILE+j] += a[i*TILE+k] * b[k*TILE+j];
 }
 
 void MatmulTiled(const AlignedArray& a, const AlignedArray& b, AlignedArray* out, uint32_t m,

@@ -107,7 +107,7 @@ class TestSetitem(unittest.TestCase):
 
     def test_setitem_ewise_case3_cpu(self):
         device = nd.cpu()
-        lhs_shape, lhs_slices = ShapeAndSlices(4, 5, 6)[1:3, 2:5, 2:6],
+        lhs_shape, lhs_slices = ShapeAndSlices(4, 5, 6)[1:3, 2:5, 2:6]
         rhs_shape, rhs_slices = ShapeAndSlices(7, 7, 7)[:2, :3, :4]
         _A = np.random.randn(*lhs_shape)
         _B = np.random.randn(*rhs_shape)
@@ -124,7 +124,7 @@ class TestSetitem(unittest.TestCase):
     @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
     def test_setitem_ewise_case3_cuda(self):
         device = nd.cuda()
-        lhs_shape, lhs_slices = ShapeAndSlices(4, 5, 6)[1:3, 2:5, 2:6],
+        lhs_shape, lhs_slices = ShapeAndSlices(4, 5, 6)[1:3, 2:5, 2:6]
         rhs_shape, rhs_slices = ShapeAndSlices(7, 7, 7)[:2, :3, :4]
         _A = np.random.randn(*lhs_shape)
         _B = np.random.randn(*rhs_shape)
