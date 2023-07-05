@@ -338,7 +338,7 @@ void ReduceMax(const AlignedArray& a, AlignedArray* out, size_t reduce_size) {
    */
 //  用于查找给定范围内最大的元素， 
   for(size_t i=0 ; i<a.size/reduce_size; i++){
-    out[i] = *std::max_element(a.ptr + i * reduce_size, a.ptr + (i+1) * reduce_size);
+    out->ptr[i] = *std::max_element(a.ptr + i * reduce_size, a.ptr + (i+1) * reduce_size);
   }
 }
 

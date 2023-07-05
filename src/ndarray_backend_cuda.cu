@@ -428,7 +428,7 @@ __global__ void ReduceMaxKernel(const float* a, float* out, size_t size, size_t 
   size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
   if (gid < size / reduce_size){
     out[gid] = a[reduce_size*gid];
-    for (size_t i=0; i< reduce_size; i++){
+    for (size_t i=1; i< reduce_size; i++){
       out[gid] = max(a[reduce_size*gid + i], out[gid]);
     }
   }
@@ -446,7 +446,7 @@ void ReduceMax(const CudaArray& a, CudaArray* out, size_t reduce_size) {
    *   redice_size: size of the dimension to reduce over
    */
     CudaDims dim = CudaOneDim(a.size / reduce_size);
-    ReduceMaxKernel<<<dim.grid, dim.block>>>(a.ptr, out->ptr, out->size, reduce_size);
+    ReduceMaxKernel<<<dim.grid, dim.block>>>(a.ptr, out->ptr, a.size, reduce_size);
 }
 
 __global__ void ReduceSumKernel(const float* a, float* out, size_t size, size_t reduce_size){
