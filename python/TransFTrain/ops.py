@@ -346,37 +346,50 @@ def tanh(a):
 
 # todo 这里需要完成
 class Stack(TensorOp):
-    def __init__(self, axis:int):
+    def __init__(self, axis: int):
+        """
+        Concatenates a sequence of arrays along a new dimension.
+        Parameters:
+        axis - dimension to concatenate along
+        All arrays need to be of the same size.
+        """
         self.axis = axis
-    
+
     def compute(self, args):
         n = len(args)
         m = args[0].size
-        axes = [d+1 for d in range(args[0].ndim)]
+        axes = [d + 1 for d in range(args[0].ndim)]
         axes.insert(self.axis, 0)
 
-        ret = array_api.empty((n, m), dtype=args[0].dtype, device = args[0].device)
+        ret = array_api.empty((n, m), dtype=args[0].dtype, device=args[0].device)
         for i, a in enumerate(args):
-            ret[i, :] = a.compact().reshape((1,m))
+            ret[i, :] = a.compact().reshape((1, m))
         return ret.reshape((n, *args[0].shape)).permute(axes)
-    
+
     def gradient(self, out_grad, node):
         return split(out_grad, axis=self.axis)
-    
+
+
 def stack(args, axis):
     return Stack(axis)(make_tuple(*args))
 
-
+# todo 这里需要完成
 class Split(TensorTupleOp):
     def __init__(self, axis: int):
+        """
+        Splits a tensor along an axis into a tuple of tensors.
+        (The "inverse" of Stack)
+        Parameters:
+        axis - dimension to split
+        """
         self.axis = axis
-    
+
     def compute(self, A):
         n = A.shape[self.axis]
         m = A.size // n
-        axes = [self.axis] + [d for d in range(A.ndim) if d!=self.axis]
+        axes = [self.axis] + [d for d in range(A.ndim) if d != self.axis]
+        shape = [d for i, d in enumerate(A.shape) if i != self.axis]
 
-        shape = [d for i,d in enumerate(A.shape) if i != self.axis]
         ret = A.permute(axes).compact().reshape((n, m))
         return [array_api.array(ret[i, :]).reshape(shape) for i in range(n)]
 
