@@ -10,10 +10,6 @@ import numpy
 
 from .backend_selection import array_api, NDArray, default_device
 
-# NOTE: we will numpy as the array_api
-# to backup our computations, this line will change in later homeworks
-import numpy as array_api
-
 
 class MakeTensorTuple(TensorTupleOp):
     def compute(self, *args) -> tuple:
@@ -102,6 +98,7 @@ def add_scalar(a, scalar):
 
 class EWiseMul(TensorOp):
     def compute(self, a: NDArray, b: NDArray):
+        mid = a*b
         return a * b
 
     def gradient(self, out_grad: Tensor, node: Tensor):
@@ -135,7 +132,7 @@ class PowerScalar(TensorOp):
         self.scalar = scalar
 
     def compute(self, a: NDArray) -> NDArray:
-        return array_api.power(a, self.scalar)
+        return a**self.scalar
 
     def gradient(self, out_grad, node):
         return out_grad * self.scalar * power_scalar(node.inputs[0], self.scalar-1)        
@@ -164,7 +161,9 @@ class DivScalar(TensorOp):
         self.scalar = scalar
 
     def compute(self, a):
-        return (a / self.scalar).astype(a.dtype)
+        # 有问题 后面要改
+        return a / self.scalar
+        # return (a / self.scalar).astype(a.dtype)
 
     def gradient(self, out_grad, node):
         return out_grad / self.scalar
@@ -241,7 +240,7 @@ def summation(a, axes=None):
 
 class MatMul(TensorOp):
     def compute(self, a, b):
-        return array_api.matmul(a, b)
+        return a @ b
 
     def gradient(self, out_grad, node):
         lhm, rhm = node.inputs
@@ -303,7 +302,7 @@ def exp(a):
 
 class ReLU(TensorOp):
     def compute(self, a: NDArray):
-        return array_api.maximum(a, 0)
+        return a.maximum(0)
 
     def gradient(self, out_grad: Tensor, node: Tensor):
         return multiply(Tensor(node.realize_cached_data() > 0), out_grad)
@@ -331,6 +330,60 @@ class LogSumExp(TensorOp):
 
 def logsumexp(a, axes=None):
     return LogSumExp(axes=axes)(a)
+
+
+class Tanh(TensorOp):
+    def compute(self, a):
+        return a.tanh()
+
+    def gradient(self, out_grad, node):
+        mid = (1.0 - tanh(node.inputs[0]) ** 2)
+        return out_grad * (1.0 - tanh(node.inputs[0]) ** 2)
+
+def tanh(a):
+    return Tanh()(a)
+
+
+
+class Stack(TensorOp):
+    def __init__(self, axis:int):
+        self.axis = axis
+    
+    def compute(self, args):
+        n = len(args)
+        m = args[0].size
+        axes = [d+1 for d in range(args[0].ndim)]
+        axes.insert(self.axis, 0)
+
+        ret = array_api.empty((n, m), dtype=args[0].dtype, device = args[0].device)
+        for i, a in enumerate(args):
+            ret[i, :] = a.compact().reshape((1,m))
+        return ret.reshape((n, *args[0].shape)).permute(axes)
+
+def stack(args, axis):
+    return Stack(axis)(make_tuple(*args))
+
+
+class Split(TensorTupleOp):
+    def __init__(self, axis: int):
+        self.axis = axis
+    
+    def compute(self, A):
+        n = A.shape[self.axis]
+        m = A.size // n
+        axes = [self.axis] + [d for d in range(A.ndim) if d!=self.axis]
+
+        shape = [d for i,d in enumerate(A.shape) if i != self.axis]
+        ret = A.permute(axes).compact().reshape((n, m))
+        return [array_api.array(ret[i, :]).reshape(shape) for i in range(n)]
+
+    def gradient(self, out_grad, node):
+        return stack(out_grad, axis=self.axis)
+
+
+def split(a, axis):
+    return Split(axis)(a)
+
 
 # additional helper functions
 def full(

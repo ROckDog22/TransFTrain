@@ -73,5 +73,25 @@ class TestMatMul(unittest.TestCase):
     #         np.testing.assert_allclose(lhs, rhs, atol=1e-5, rtol=1e-5)
 
 
+    def test_matmul_cpu(self):
+        device = train.cpu()
+        for m,n,p in matmul_dims:
+            _A = np.random.randn(m, n).astype(np.float32)
+            _B = np.random.randn(n, p).astype(np.float32)
+            A = train.Tensor(nd.array(_A), device=device)
+            B = train.Tensor(nd.array(_B), device=device)
+            np.testing.assert_allclose(_A @ _B, (A @ B).numpy(), atol=1e-5, rtol=1e-5)
+
+
+    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    def test_matmul_cuda(self):
+        device = train.cuda()
+        for m,n,p in matmul_dims:
+            _A = np.random.randn(m, n).astype(np.float32)
+            _B = np.random.randn(n, p).astype(np.float32)
+            A = train.Tensor(nd.array(_A), device=device)
+            B = train.Tensor(nd.array(_B), device=device)
+            np.testing.assert_allclose(_A @ _B, (A @ B).numpy(), atol=1e-5, rtol=1e-5)
+
 if "__main__" == __name__:
     unittest.main()

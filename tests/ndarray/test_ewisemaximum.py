@@ -44,5 +44,6 @@ class TestEwiseMaximum(unittest.TestCase):
         B = nd.array(_B, device=nd.cuda())
         np.testing.assert_allclose(np.maximum(_A, _B), A.maximum(B).numpy(), atol=1e-5, rtol=1e-5)
 
+
 if "__main__" == __name__:
     unittest.main()
