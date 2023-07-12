@@ -3,7 +3,7 @@ import TransFTrain
 from typing import List, Optional, NamedTuple, Tuple, Union, Dict
 from collections import namedtuple, defaultdict
 import numpy
-
+from TransFTrain import init
 # TransFTrain version
 LAZY_MODE = False
 TENSOR_COUNTER = 0
@@ -281,7 +281,7 @@ class Tensor(Value):
         return data.device
 
     def backward(self, out_grad=None):
-        out_grad = out_grad if out_grad else Tensor(array_api.ones(self.shape, dtype=self.data.dtype))
+        out_grad = out_grad if out_grad else init.ones(*self.shape, dtype=self.dtype, device=self.device)
         compute_gradient_of_variables(self, out_grad)
 
     def __repr__(self):
@@ -316,6 +316,13 @@ class Tensor(Value):
             return TransFTrain.ops.EWiseAdd()(self, TransFTrain.ops.Negate()(other))
         else:
             return TransFTrain.ops.AddScalar(-other)(self)
+    
+    def __rsub__(self, other):
+        if isinstance(other, Tensor):
+            return TransFTrain.ops.EWiseAdd()(self, TransFTrain.ops.Negate()(other))
+        else:
+            return TransFTrain.ops.AddScalar(other)(-self)
+
 
     def __truediv__(self, other):
         if isinstance(other, Tensor):
@@ -369,7 +376,6 @@ class Tensor(Value):
 
     __radd__ = __add__
     __rmul__ = __mul__
-    __rsub__ = __sub__
     __rmatmul__ = __matmul__
 
 

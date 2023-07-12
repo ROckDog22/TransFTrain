@@ -34,30 +34,6 @@ def backward_check(f, *args, **kwargs):
     return [g.numpy() for g in backward_grad]
 
 
-GENERAL_SHAPES = [(1, 1, 1), (4, 5, 6)]
-
-
-@pytest.mark.parametrize("shape", GENERAL_SHAPES)
-@pytest.mark.parametrize("device", _DEVICES, ids=["cpu", "cuda"])
-def test_tanh_backward(shape, device):
-    _A = np.random.randn(*shape).astype(np.float32)
-    A = ndl.Tensor(nd.array(_A), device=device)
-    backward_check(ndl.tanh, A)
-
-
-STACK_PARAMETERS = [((5, 5), 0, 1),
-    ((5, 5), 0, 2),
-    ((1,5,7), 2, 5)]
-@pytest.mark.parametrize("shape, axis, l", STACK_PARAMETERS)
-@pytest.mark.parametrize("device", _DEVICES, ids=["cpu", "cuda"])
-def test_stack(shape, axis, l, device):
-    _A = [np.random.randn(*shape).astype(np.float32) for i in range(l)]
-    A = [ndl.Tensor(nd.array(_A[i]), device=device) for i in range(l)]
-    A_t = [torch.Tensor(_A[i]) for i in range(l)]
-    out = ndl.stack(A, axis=axis)
-    out_t = torch.stack(A_t, dim=axis)
-    np.testing.assert_allclose(out_t.numpy(), out.numpy(), atol=1e-5, rtol=1e-5)
-
 
 @pytest.mark.parametrize("shape, axis, l", STACK_PARAMETERS)
 @pytest.mark.parametrize("device", _DEVICES, ids=["cpu", "cuda"])

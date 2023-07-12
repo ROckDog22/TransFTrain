@@ -578,3 +578,32 @@ def full(shape, fill_value, dtype="float32", device=None):
 
 def broadcast_to(array, new_shape):
     return array.broadcast_to(new_shape)
+
+def reshape(array, new_shape):
+    return array.reshape(new_shape)
+
+def maximum(a, b):
+    return a.maximum(b)
+
+def log(a):
+    return a.log()
+
+def exp(a):
+    return a.exp()
+
+def tanh(a):
+    return a.tanh()
+
+def flip(a, axes):
+    return a.flip(axes)
+
+def summation(a, axis=None, keepdims=False):
+    # return a.sum(axis=axis, keepdims=keepdims)
+    return a.sum(axis=axis)
+
+def permute(a, axes):
+    return a.permute(axes)
+
+def max(a, axis=None, keepdims=False):
+    # return a.max(axis=axis, keepdims = keepdims)
+    return a.max(axis=axis)

@@ -19,9 +19,12 @@ def backward_check(f, *args, **kwargs):
     num_args = len(args)
     for i in range(num_args):
         for j in range(args[i].realize_cached_data().size):
+            t1 = args[i].realize_cached_data().flat[j]
             args[i].realize_cached_data().flat[j] += eps
+            t2 = args[i].realize_cached_data().flat[j]
             f1 = (f(*args, **kwargs).numpy() * c).sum()
             args[i].realize_cached_data().flat[j] -= 2 * eps
+            t3 = args[i].realize_cached_data().flat[j]
             f2 = (f(*args, **kwargs).numpy() * c).sum()
             args[i].realize_cached_data().flat[j] += eps
             numerical_grad[i].flat[j] = (f1 - f2) / (2 * eps)
@@ -34,33 +37,33 @@ def backward_check(f, *args, **kwargs):
 
 
 class Testtanh(unittest.TestCase):
-    # def test_case1_cpu(self):
-    #     A = np.random.randn(5, 5)
-    #     B = nd.array(A, device=nd.cpu())
-    #     np.testing.assert_allclose(np.tanh(A), (B.tanh()).numpy(), atol=1e-5, rtol=1e-5)
+    def test_case1_cpu(self):
+        A = np.random.randn(5, 5)
+        B = nd.array(A, device=nd.cpu())
+        np.testing.assert_allclose(np.tanh(A), (B.tanh()).numpy(), atol=1e-5, rtol=1e-5)
 
 
-    # @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
-    # def test_case1_cuda(self):
-    #     A = np.random.randn(5, 5)
-    #     B = nd.array(A, device=nd.cuda())
-    #     np.testing.assert_allclose(np.tanh(A), (B.tanh()).numpy(), atol=1e-5, rtol=1e-5)
+    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    def test_case1_cuda(self):
+        A = np.random.randn(5, 5)
+        B = nd.array(A, device=nd.cuda())
+        np.testing.assert_allclose(np.tanh(A), (B.tanh()).numpy(), atol=1e-5, rtol=1e-5)
 
         
-    # def test_tanh_cpu(self):
-    #     device = train.cpu()
-    #     for shape in GENERAL_SHAPES:
-    #         _A = np.random.randn(*shape).astype(np.float32)
-    #         A = train.Tensor(nd.array(_A), device=device)
-    #         np.testing.assert_allclose(np.tanh(_A), train.tanh(A).numpy(), atol=1e-5, rtol=1e-5)
+    def test_tanh_cpu(self):
+        device = train.cpu()
+        for shape in GENERAL_SHAPES:
+            _A = np.random.randn(*shape).astype(np.float32)
+            A = train.Tensor(nd.array(_A), device=device)
+            np.testing.assert_allclose(np.tanh(_A), train.tanh(A).numpy(), atol=1e-5, rtol=1e-5)
     
-    # @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
-    # def test_tanh_cuda(self):
-    #     device = train.cuda()
-    #     for shape in GENERAL_SHAPES:
-    #         _A = np.random.randn(*shape).astype(np.float32)
-    #         A = train.Tensor(nd.array(_A), device=device)
-    #         np.testing.assert_allclose(np.tanh(_A), train.tanh(A).numpy(), atol=1e-5, rtol=1e-5)
+    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    def test_tanh_cuda(self):
+        device = train.cuda()
+        for shape in GENERAL_SHAPES:
+            _A = np.random.randn(*shape).astype(np.float32)
+            A = train.Tensor(nd.array(_A), device=device)
+            np.testing.assert_allclose(np.tanh(_A), train.tanh(A).numpy(), atol=1e-5, rtol=1e-5)
 
     def test_tanh_backward_cpu(self):
         device = train.cpu()
@@ -69,13 +72,13 @@ class Testtanh(unittest.TestCase):
             A = train.Tensor(nd.array(_A), device=device)
             backward_check(train.tanh, A)
 
-    # @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
-    # def test_tanh_backward_cuda(self):
-    #     device = train.cuda()
-    #     for shape in GENERAL_SHAPES:
-    #         _A = np.random.randn(*shape).astype(np.float32)
-    #         A = train.Tensor(nd.array(_A), device=device)
-    #         backward_check(train.tanh, A)
+    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    def test_tanh_backward_cuda(self):
+        device = train.cuda()
+        for shape in GENERAL_SHAPES:
+            _A = np.random.randn(*shape).astype(np.float32)
+            A = train.Tensor(nd.array(_A), device=device)
+            backward_check(train.tanh, A)
 
 
 if "__main__" == __name__:

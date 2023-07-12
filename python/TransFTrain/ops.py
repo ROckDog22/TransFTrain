@@ -2,7 +2,7 @@
 from numbers import Number
 from typing import Optional, List, Tuple, Union
 from itertools import zip_longest
-
+from functools import reduce
 from .autograd import NDArray
 from .autograd import Op, Tensor, Value, TensorOp
 from .autograd import TensorTuple, TensorTupleOp
@@ -227,8 +227,8 @@ class Summation(TensorOp):
 
     def compute(self, a):
         if self.axes is None:
-            return array_api.sum(a)
-        return array_api.sum(a, axis = self.axes)
+            return array_api.summation(a)
+        return reduce(array_api.summation, reversed(self.axes), a)
 
     def gradient(self, out_grad, node):
         shape = restore_shape(node.inputs[0], self.axes)
@@ -334,10 +334,9 @@ def logsumexp(a, axes=None):
 
 class Tanh(TensorOp):
     def compute(self, a):
-        return a.tanh()
+        return array_api.tanh(a)
 
     def gradient(self, out_grad, node):
-        mid = (1.0 - tanh(node.inputs[0]) ** 2)
         return out_grad * (1.0 - tanh(node.inputs[0]) ** 2)
 
 def tanh(a):
@@ -345,6 +344,7 @@ def tanh(a):
 
 
 
+# todo 这里需要完成
 class Stack(TensorOp):
     def __init__(self, axis:int):
         self.axis = axis
@@ -359,7 +359,10 @@ class Stack(TensorOp):
         for i, a in enumerate(args):
             ret[i, :] = a.compact().reshape((1,m))
         return ret.reshape((n, *args[0].shape)).permute(axes)
-
+    
+    def gradient(self, out_grad, node):
+        return split(out_grad, axis=self.axis)
+    
 def stack(args, axis):
     return Stack(axis)(make_tuple(*args))
 
