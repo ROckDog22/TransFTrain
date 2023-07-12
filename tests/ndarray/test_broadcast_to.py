@@ -15,7 +15,9 @@ def compare_strides(a_np, a_nd):
 def check_same_memory(original, view):
     assert original._handle.ptr() == view._handle.ptr()
 
-class TestPermute(unittest.TestCase):
+BROADCAST_SHAPES = [((1, 1, 1), (3, 3, 3)),
+    ((4, 1, 6), (4, 3, 6))]
+class TestBroadcast_to(unittest.TestCase):
     def setUp(self):
         # 1 1 2 3
         self.x = np.array([[[[1,2,3],[1,2,3]]]])
@@ -88,6 +90,23 @@ class TestPermute(unittest.TestCase):
             np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
             compare_strides(lhs, rhs)
             check_same_memory(A, rhs)
+
+
+    def test_broadcast_to_cpu(self):
+        device = train.cpu()
+        for shape, shape_to in BROADCAST_SHAPES:
+            _A = np.random.randn(*shape).astype(np.float32)
+            A = train.Tensor(nd.array(_A), device=device)
+            np.testing.assert_allclose(np.broadcast_to(_A, shape_to), train.broadcast_to(A, shape_to).numpy(), atol=1e-5, rtol=1e-5)
+
+    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    def test_broadcast_to_cuda(self):
+        device = train.cuda()
+        for shape, shape_to in BROADCAST_SHAPES:
+            _A = np.random.randn(*shape).astype(np.float32)
+            A = train.Tensor(nd.array(_A), device=device)
+            np.testing.assert_allclose(np.broadcast_to(_A, shape_to), train.broadcast_to(A, shape_to).numpy(), atol=1e-5, rtol=1e-5)
+
 
 if __name__ == '__main__':
     unittest.main()

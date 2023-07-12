@@ -19,7 +19,7 @@ class TestCifarPtbData(unittest.TestCase):
     def test_cifar10_dataset(self):
         for train_ in TRAIN:
             dataset = train.data.CIFAR10Dataset("data/cifar-10-batches-py", train=train_)
-            if train:
+            if train_:
                 assert len(dataset) == 50000
             else:
                 assert len(dataset) == 10000

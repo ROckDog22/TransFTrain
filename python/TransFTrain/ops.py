@@ -17,7 +17,7 @@ class MakeTensorTuple(TensorTupleOp):
 
     def gradient(self, out_grad, node):
         assert isinstance(out_grad, TensorTuple)
-        return tuple(*[out_grad[i] for i in range(len(out_grad))])
+        return tuple([out_grad[i] for i in range(len(out_grad))])
 
 
 def make_tuple(*args):
@@ -178,13 +178,15 @@ class Transpose(TensorOp):
         self.axes = axes
 
     def compute(self, a):
-        if self.axes is None:
-            self.axes = (len(a.shape) - 2, len(a.shape) - 1)
-        return array_api.swapaxes(a, *self.axes)
+        n = a.ndim
+        axis1, axis2 = self.axes if self.axes else (n-2, n-1)
+        axes = list(range(n))
+        axes[axis1] = axis2
+        axes[axis2] = axis1
+        return array_api.permute(a, axes)
 
     def gradient(self, out_grad, node):
-        change_axes_ = node.op.axes
-        return out_grad.transpose(change_axes_)
+        return out_grad.transpose(self.axes)
 
 
 def transpose(a, axes=None):
@@ -315,9 +317,9 @@ class LogSumExp(TensorOp):
         self.axes = axes
 
     def compute(self, Z):
-        # compute call array_api. api NDarray compute
+        shape = restore_shape(Z, self.axes)
         max_z = array_api.max(Z, self.axes, keepdims=True)
-        max_z_ = array_api.broadcast_to(max_z, Z.shape)
+        max_z_ = array_api.broadcast_to(array_api.reshape(max_z, shape), Z.shape)
         ret = array_api.log(array_api.exp(Z - max_z_).sum(self.axes))
         return ret + max_z.reshape(ret.shape)
 
@@ -400,6 +402,12 @@ class Split(TensorTupleOp):
 def split(a, axis):
     return Split(axis)(a)
 
+
+class Flip(TensorOp):
+    def __init__(self, axes: Optional[tuple] = None):
+        self.axes = axes
+
+    def compute(self)
 
 # additional helper functions
 def full(

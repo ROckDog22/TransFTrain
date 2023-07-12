@@ -7,6 +7,8 @@ import TransFTrain as train
 import TransFTrain.backend_ndarray as nd
 import numpy as np
 
+RESHAPE_SHAPES = [((1, 1, 1), (1,)),
+    ((4, 1, 6), (6, 4, 1))]
 
 def compare_strides(a_np, a_nd):
     size = a_np.itemsize
@@ -105,6 +107,23 @@ class TestReshape(unittest.TestCase):
             np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
             compare_strides(lhs, rhs)
             check_same_memory(A, rhs)
+
+    def test_reshape(self):
+        device = train.cpu()
+        for shape, shape_to in RESHAPE_SHAPES:
+            _A = np.random.randn(*shape).astype(np.float32)
+            A = train.Tensor(nd.array(_A), device=device)
+            np.testing.assert_allclose(np.reshape(_A, shape_to), train.reshape(A, shape_to).numpy(), atol=1e-5, rtol=1e-5)
+
+
+    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    def test_reshape(self):
+        device = train.cuda()
+        for shape, shape_to in RESHAPE_SHAPES:
+            _A = np.random.randn(*shape).astype(np.float32)
+            A = train.Tensor(nd.array(_A), device=device)
+            np.testing.assert_allclose(np.reshape(_A, shape_to), train.reshape(A, shape_to).numpy(), atol=1e-5, rtol=1e-5)
+
 
 if __name__ == '__main__':
     unittest.main()
