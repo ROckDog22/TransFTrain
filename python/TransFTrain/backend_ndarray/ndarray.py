@@ -5,8 +5,6 @@ import numpy as np
 from . import ndarray_backend_numpy
 from . import ndarray_backend_cpu
 
-import TransFTrain
-
 # math.prod not in Python 3.7
 def prod(x):
     return reduce(operator.mul, x, 1)
@@ -87,11 +85,13 @@ def all_devices():
 
 
 class NDArray:
-    """A generic ND array class that may contain multiple different backends
+    """A generic ND array class that may contain multipe different backends
     i.e., a Numpy backend, a native CPU backend, or a GPU backend.
+
     This class will only contains those functions that you need to implement
     to actually get the desired functionality for the programming examples
     in the homework, and no more.
+
     For now, for simplicity the class only supports float32 types, though
     this can be extended if desired.
     """
@@ -124,7 +124,6 @@ class NDArray:
     @staticmethod
     def compact_strides(shape):
         """ Utility function to compute compact strides """
-        # 3, 3, 4 
         stride = 1
         res = []
         for i in range(1, len(shape) + 1):
@@ -234,26 +233,29 @@ class NDArray:
         Reshape the matrix without copying memory.  This will return a matrix
         that corresponds to a reshaped array but points to the same memory as
         the original array.
+
         Raises:
             ValueError if product of current shape is not equal to the product
             of the new shape, or if the matrix is not compact.
+
         Args:
             new_shape (tuple): new shape of the array
-        Returns:
-            NDArray : reshaped array; this will point to the same memory as the original NDArray.
-        """
 
+        Returns:
+            NDArray : reshaped array; this will point to thep
+        """
         if self.size != prod(new_shape):
             raise ValueError(f"cannot reshape array of size {self.shape} into shape {new_shape}")
-        
+
         if not self.is_compact():
-            raise ValueError("cannot reshape sparse matrix")
-        
+            raise ValueError("cannot rashape sparse matrix")
+
         return self.as_strided(new_shape, self.compact_strides(new_shape))
+
 
     def permute(self, new_axes):
         """
-        Permute order of the dimensions.  new_axes describes a permutation of the
+        Permute order of the dimensions.  new_axes describes a permuation of the
         existing axes, so e.g.:
           - If we have an array with dimension "BHWC" then .permute((0,3,1,2))
             would convert this to "BCHW" order.
@@ -261,9 +263,11 @@ class NDArray:
         Like reshape, this operation should not copy memory, but achieves the
         permuting by just adjusting the shape/strides of the array.  That is,
         it returns a new array that has the dimensions permuted as desired, but
-        which points to the same memory as the original array.
+        which points to the same memroy as the original array.
+
         Args:
-            new_axes (tuple): permutation order of the dimensions
+            new_axes (tuple): permuation order of the dimensions
+
         Returns:
             NDarray : new NDArray object with permuted dimensions, pointing
             to the same memory as the original NDArray (i.e., just shape and
@@ -280,11 +284,14 @@ class NDArray:
         the size = 1 (which can then be broadcast to any size).  As with the
         previous calls, this will not copy memory, and just achieves
         broadcasting by manipulating the strides.
+
         Raises:
             assertion error if new_shape[i] != shape[i] for all i where
             shape[i] != 1
+
         Args:
             new_shape (tuple): shape to broadcast to
+
         Returns:
             NDArray: the new NDArray object with the new broadcast shape; should
             point to the same memory as the original array.
@@ -297,6 +304,7 @@ class NDArray:
             )
         strides = tuple(s * (d!=1) for s,d in zip(self.strides, self.shape))
         return self.as_strided(new_shape, strides)
+
 
 
     def process_slice(self, sl, dim):
@@ -327,21 +335,25 @@ class NDArray:
         three elements .start .stop .step), which can be None or have negative
         entries, so for simplicity we wrote the code for you to convert these
         to always be a tuple of slices, one of each dimension.
+
         For this tuple of slices, return an array that subsets the desired
         elements.  As before, this can be done entirely through compute a new
         shape, stride, and offset for the new "view" into the original array,
         pointing to the same memory
+
         Raises:
             AssertionError if a slice has negative size or step, or if number
             of slices is not equal to the number of dimension (the stub code
             already raises all these errors.
+
         Args:
             idxs tuple: (after stub code processes), a tuple of slice elements
-            corresponding to the subset of the matrix to get
+            coresponding to the subset of the matrix to get
+
         Returns:
             NDArray: a new NDArray object corresponding to the selected
-            subset of elements.  As before, this should not copy memory but just
-            manipulate the shape/strides/offset of the new array, referencing
+            subset of elements.  As before, this should not copy memroy but just
+            manipulate the shape/strides/offset of the new array, referecing
             the same array as the original one.
         """
 
@@ -366,7 +378,6 @@ class NDArray:
             handle=self._handle,
             offset=offset
         )
-
 
     def __setitem__(self, idxs, other):
         """Set the values of a view into an array, using the same semantics
@@ -481,16 +492,18 @@ class NDArray:
 
     ### Matrix multiplication
     def __matmul__(self, other):
-        """Matrix multiplication of two arrays.  This requires that both arrays
+        """Matrix multplication of two arrays.  This requires that both arrays
         be 2D (i.e., we don't handle batch matrix multiplication), and that the
         sizes match up properly for matrix multiplication.
+
         In the case of the CPU backend, you will implement an efficient "tiled"
         version of matrix multiplication for the case when all dimensions of
         the array are divisible by self.device.__tile_size__.  In this case,
-        the code below will re-stride and compact the matrix into tiled form,
+        the code below will restride and compact the matrix into tiled form,
         and then pass to the relevant CPU backend.  For the CPU version we will
         just fall back to the naive CPU implementation if the array shape is not
         a multiple of the tile size
+
         The GPU (and numpy) versions don't have any tiled version (or rather,
         the GPU version will just work natively by tiling any input size).
         """
@@ -566,6 +579,10 @@ class NDArray:
         return out
 
     def flip(self, axes):
+        """
+        Flip this ndarray along the specified axes.
+        Note: compact() before returning.
+        """
         if isinstance(axes, int):
             axes = axes,
         return NDArray.make(
@@ -576,9 +593,15 @@ class NDArray:
             handle=self._handle,
             offset=sum((self.shape[ax] - 1) * self.strides[ax] for ax in axes),
         ).compact()
-    
+
 
     def pad(self, axes):
+        """
+        Pad this ndarray by zeros by the specified amount in `axes`,
+        which lists for _all_ axes the left and right padding amount, e.g.,
+        axes = ((0, 0), (1, 1), (0, 0)) pads the middle axis with a 0 on the
+        left and right side.
+        """
         ret = full(
             shape=tuple(d + l + r for d, (l, r) in zip(self.shape, axes)),
             fill_value=0,
@@ -610,17 +633,22 @@ def full(shape, fill_value, dtype="float32", device=None):
 def broadcast_to(array, new_shape):
     return array.broadcast_to(new_shape)
 
+
 def reshape(array, new_shape):
     return array.reshape(new_shape)
+
 
 def maximum(a, b):
     return a.maximum(b)
 
+
 def log(a):
     return a.log()
 
+
 def exp(a):
     return a.exp()
+
 
 def tanh(a):
     return a.tanh()
@@ -628,13 +656,14 @@ def tanh(a):
 def flip(a, axes):
     return a.flip(axes)
 
+
 def summation(a, axis=None, keepdims=False):
-    # return a.sum(axis=axis, keepdims=keepdims)
-    return a.sum(axis=axis)
+    return a.sum(axis=axis, keepdims=keepdims)
+
 
 def permute(a, axes):
     return a.permute(axes)
 
+
 def max(a, axis=None, keepdims=False):
-    # return a.max(axis=axis, keepdims = keepdims)
-    return a.max(axis=axis)
+    return a.max(axis=axis, keepdims=keepdims)
