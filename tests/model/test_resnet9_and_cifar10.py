@@ -2,10 +2,11 @@ import unittest
 
 import sys
 sys.path.append('./python')
+sys.path.append('./tests')
 # 你需要在.vscode里面添加extra地址 才能找到
 import TransFTrain as train
 import numpy as np
-from tests.model.models import ResNet9
+from model.models import ResNet9
 def one_iter_of_cifar10_training(dataloader, model, niter=1, loss_fn=train.nn.SoftmaxLoss(), opt=None, device=None):
     np.random.seed(4)
     model.train()
