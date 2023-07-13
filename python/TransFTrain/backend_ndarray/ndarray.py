@@ -5,6 +5,8 @@ import numpy as np
 from . import ndarray_backend_numpy
 from . import ndarray_backend_cpu
 
+import TransFTrain
+
 # math.prod not in Python 3.7
 def prod(x):
     return reduce(operator.mul, x, 1)
@@ -568,10 +570,6 @@ class NDArray:
         return out
 
     def flip(self, axes):
-        """
-        Flip this ndarray along the specified axes.
-        Note: compact() before returning.
-        """
         if isinstance(axes, int):
             axes = axes,
         return NDArray.make(
@@ -582,6 +580,19 @@ class NDArray:
             handle=self._handle,
             offset=sum((self.shape[ax] - 1) * self.strides[ax] for ax in axes),
         ).compact()
+    
+
+    def pad(self, axes):
+        ret = full(
+            shape=tuple(d + l + r for d, (l, r) in zip(self.shape, axes)),
+            fill_value=0,
+            dtype=self.dtype,
+            device=self.device,
+        )
+        slices = tuple(slice(left, left + dim if right else None)
+                       for dim, (left, right) in zip(self.shape, axes))
+        ret[slices] = self
+        return ret
 
 def array(a, dtype="float32", device=None):
     """ Convenience methods to match numpy a bit more closely."""

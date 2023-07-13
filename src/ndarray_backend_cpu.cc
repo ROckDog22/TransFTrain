@@ -48,7 +48,7 @@ void Fill(AlignedArray* out, scalar_t val) {
   }
 }
 
-void incIndices(uint32_t *indices, const std::vector<uint32_t> shape){
+void incIndices(uint32_t *indices, const std::vector<int32_t> shape){
     int i;
     for (i = shape.size()-1; i>=0; i--){
       if(indices[i] < shape[i] - 1)
@@ -60,7 +60,7 @@ void incIndices(uint32_t *indices, const std::vector<uint32_t> shape){
       indices[j]= 0;
 }
 
-uint32_t getOffset(const uint32_t *indices, const std::vector<uint32_t>& strides, uint32_t start=0){
+uint32_t getOffset(const uint32_t *indices, const std::vector<int32_t>& strides, uint32_t start=0){
   uint32_t ret = start;
   for(size_t i=0; i<strides.size(); i++){
     ret += strides[i] * indices[i];
@@ -70,8 +70,8 @@ uint32_t getOffset(const uint32_t *indices, const std::vector<uint32_t>& strides
 
 
 
-void Compact(const AlignedArray& a, AlignedArray* out, std::vector<uint32_t> shape,
-             std::vector<uint32_t> strides, size_t offset) {
+void Compact(const AlignedArray& a, AlignedArray* out, std::vector<int32_t> shape,
+             std::vector<int32_t> strides, size_t offset) {
   /**
    * Compact an array in memory
    *
@@ -93,8 +93,8 @@ void Compact(const AlignedArray& a, AlignedArray* out, std::vector<uint32_t> sha
    }
 }
 
-void EwiseSetitem(const AlignedArray& a, AlignedArray* out, std::vector<uint32_t> shape,
-                  std::vector<uint32_t> strides, size_t offset) {
+void EwiseSetitem(const AlignedArray& a, AlignedArray* out, std::vector<int32_t> shape,
+                  std::vector<int32_t> strides, size_t offset) {
   /**
    * Set items in a (non-compact) array
    *
@@ -112,8 +112,8 @@ void EwiseSetitem(const AlignedArray& a, AlignedArray* out, std::vector<uint32_t
    free(indices);
 }
 
-void ScalarSetitem(const size_t size, scalar_t val, AlignedArray* out, std::vector<uint32_t> shape,
-                   std::vector<uint32_t> strides, size_t offset) {
+void ScalarSetitem(const size_t size, scalar_t val, AlignedArray* out, std::vector<int32_t> shape,
+                   std::vector<int32_t> strides, size_t offset) {
   /**
    * Set items is a (non-compact) array
    *

@@ -58,6 +58,36 @@ class TestInit(unittest.TestCase):
             [-0.07646392 , -0.07684541 , 0.039923776, -0.31569123 ,
             -0.28461143 ]], dtype=np.float32), rtol=1e-4, atol=1e-4)
 
+    def test_init_kaiming_uniform_cpu(self):
+        device = train.cpu()
+        _A = np.random.randn(3, 3, 16, 8)
+        A = train.Tensor(_A, device=device)
+        np.random.seed(0)
+        A = train.init.kaiming_uniform(16*9, 8*9, shape=A.shape)
+        assert abs(A.sum().numpy() - -2.5719218) < 1e-4
+        
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
+    def test_init_kaiming_uniform_cuda(self):
+        device = train.cuda()
+        _A = np.random.randn(3, 3, 16, 8)
+        A = train.Tensor(_A, device=device)
+        np.random.seed(0)
+        A = train.init.kaiming_uniform(16*9, 8*9, shape=A.shape)
+        assert abs(A.sum().numpy() - -2.5719218) < 1e-4
+
+    # def test_init_calculate_fans(device):
+    #     _A = np.random.randn(3, 3, 16, 8)
+    #     A = train.Tensor(_A, device=device)
+    #     assert train.init._calculate_fans(A) == (144, 72)
+
+    #     _A = np.random.randn(3, 3, 16, 8)
+    #     A = train.Tensor(_A, device=device)
+    #     assert train.init._calculate_fans(A) == (144, 72)
+
+
+    #     _A = np.random.randn(16, 8)
+    #     A = train.Tensor(_A, device=device)
+    #     assert train.init._calculate_fans(A) == (16, 8)
 
 if "__main__" == __name__:
     unittest.main()

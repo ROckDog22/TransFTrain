@@ -185,5 +185,42 @@ class TestStack(unittest.TestCase):
             lhs = np.stack(to_stack_npy, axis=axis)
             rhs = train.stack(to_stack_ndl, axis=axis)
 
+
+    def test_stack_vs_pytorch(self):
+        np.random.seed(0)
+        import torch
+        A = np.random.randn(5, 5)
+        B = np.random.randn(5, 5)
+        C = np.random.randn(5, 5)
+        D = np.random.randn(15, 5)
+
+        Atrain = train.Tensor(A, requires_grad=True)
+        Btrain = train.Tensor(B, requires_grad=True)
+        Ctrain = train.Tensor(C, requires_grad=True)
+        Dtrain = train.Tensor(D, requires_grad=True)
+
+        Atch = torch.tensor(A, requires_grad=True)
+        Btch = torch.tensor(B, requires_grad=True)
+        Ctch = torch.tensor(C, requires_grad=True)
+        Dtch = torch.tensor(D, requires_grad=True)
+
+        Xtrain = train.stack([Atrain, Ctrain @ Btrain, Ctrain], axis=1)
+        Xtch = torch.stack([Atch, Ctch @ Btch, Ctch], dim=1)
+
+        assert Xtrain.shape == Xtch.shape
+        assert np.linalg.norm(Xtrain.numpy() - Xtch.detach().numpy()) < 1e-3
+
+        Ytrain = (Dtrain @ Xtrain.reshape((5, 15)) @ Dtrain).sum()
+        Ytch = (Dtch @ Xtch.reshape(5, 15) @ Dtch).sum()
+
+        assert np.linalg.norm(Ytrain.numpy() - Ytch.detach().numpy()) < 1e-3
+
+        Ytrain.backward()
+        Ytch.backward()
+
+        assert np.linalg.norm(Atrain.grad.cached_data.numpy() - Atch.grad.detach().numpy()) < 1e-3
+        assert np.linalg.norm(Btrain.grad.cached_data.numpy() - Btch.grad.detach().numpy()) < 1e-3
+        assert np.linalg.norm(Ctrain.grad.cached_data.numpy() - Ctch.grad.detach().numpy()) < 1e-3
+
 if __name__=="__main__":
     unittest.main()

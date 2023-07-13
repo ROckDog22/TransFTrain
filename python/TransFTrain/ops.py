@@ -198,7 +198,7 @@ class Reshape(TensorOp):
         self.shape = shape
 
     def compute(self, a):
-        return array_api.reshape(a, self.shape)
+        return array_api.reshape(a.compact(), self.shape)
 
     def gradient(self, out_grad, node):
         return out_grad.reshape(node.inputs[0].shape)
@@ -407,7 +407,109 @@ class Flip(TensorOp):
     def __init__(self, axes: Optional[tuple] = None):
         self.axes = axes
 
-    def compute(self)
+    def compute(self, a):
+        return array_api.flip(a, self.axes)
+    
+    def gradient(self, out_grad, node):
+        return flip(out_grad, self.axes)
+
+def flip(a, axes):
+    return Flip(axes)(a)
+
+class Dilate(TensorOp):
+    def __init__(self, axes: tuple, dilation: int):
+        self.axes = axes
+        self.dilation = dilation
+
+    def compute(self, a):
+        shape = [dim * (1 + self.dilation * (axis in self.axes))
+                 for axis, dim in enumerate(a.shape)]
+        ret = array_api.full(
+            shape=shape,
+            fill_value=0,
+            dtype=a.dtype,
+            device=a.device,
+        )
+        slices = tuple(slice(0, dim, 1 + self.dilation * (axis in self.axes))
+                       for axis, dim in enumerate(shape))
+        ret[slices] = a
+        return ret
+
+    def gradient(self, out_grad, node):
+        return undilate(out_grad, self.axes, self.dilation)
+
+
+def dilate(a, axes, dilation):
+    return Dilate(axes, dilation)(a)
+
+
+class UnDilate(TensorOp):
+    def __init__(self, axes: tuple, dilation: int):
+        self.axes = axes
+        self.dilation = dilation
+
+    def compute(self, a):
+        ret = array_api.full(
+            shape=[dim // (1 + self.dilation * (axis in self.axes))
+                   for axis, dim in enumerate(a.shape)],
+            fill_value=0,
+            dtype=a.dtype,
+            device = a.device,
+        )
+        slices = tuple(slice(0, dim, (1 + self.dilation * (axis in self.axes)))
+                       for axis, dim in enumerate(a.shape))
+        ret = a[slices]
+        return ret
+
+    def gradient(self, out_grad, node):
+        return dilate(out_grad, self.axes, self.dilation)
+
+
+def undilate(a, axes, dilation):
+    return UnDilate(axes, dilation)(a)
+
+
+class Conv(TensorOp):
+    def __init__(self, stride: Optional[int] = 1, padding: Optional[int] = 0):
+        self.stride = stride
+        self.padding = padding
+
+    def compute(self, A, B):
+        p = self.padding
+        A_pad = A.pad(((0, 0), (p, p), (p, p), (0, 0)))
+        N, H, W, C_in = A_pad.shape
+        K, _, _, C_out = B.shape
+        Ns, Hs, Ws, Cs = A_pad.strides
+        H_out = (H - K) // self.stride + 1
+        W_out = (W - K) // self.stride + 1
+
+        ret = A_pad.as_strided(
+            shape=(N, H_out, W_out, K, K, C_in),
+            strides=(Ns, Hs * self.stride, Ws * self.stride, Hs, Ws, Cs)
+        ).compact().reshape((N * H_out * W_out, K * K * C_in))
+        ret = ret @ B.compact().reshape((K*K*C_in, C_out))
+        return ret.reshape((N, H_out, W_out, C_out))
+
+    def gradient(self, out_grad, node):
+        X, W = node.inputs
+        K = W.shape[0]
+        W = flip(W, axes=(0, 1)).transpose((2, 3))
+
+        if self.stride > 1:
+            out_grad = dilate(out_grad, axes=(1, 2), dilation=self.stride-1)
+
+        X_grad = conv(out_grad, W, stride=1, padding=K-self.padding-1)
+
+        X = X.transpose((1, 2)).transpose((0, 3))
+        out_grad = out_grad.transpose((0, 2))
+        w_grad = conv(X, out_grad, stride=1, padding=self.padding).transpose((0, 2))
+
+        return X_grad, w_grad
+
+
+def conv(a, b, stride=1, padding=1):
+    return Conv(stride, padding)(a, b)
+
 
 # additional helper functions
 def full(
