@@ -1,14 +1,13 @@
 import sys
 sys.path.append('./python')
-sys.path.append('./apps')
 import numpy as np
 import pytest
 import torch
 import itertools
 import mugrade
 
-import needle as ndl
-import needle.nn as nn
+import TransFTrain as ndl
+import TransFTrain.nn as nn
 
 from simple_training import *
 from models import LanguageModel
