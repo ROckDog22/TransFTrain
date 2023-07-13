@@ -202,10 +202,6 @@ class NDArray:
     def is_compact(self):
         """Return true if array is compact in memory and internal size equals product
         of the shape dimensions"""
-        a= self._strides
-        b = self.compact_strides(self._shape)
-        c = prod(self.shape)
-        d = self._handle.size
         return (
             self._strides == self.compact_strides(self._shape)
             and prod(self.shape) == self._handle.size

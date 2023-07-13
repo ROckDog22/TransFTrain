@@ -242,14 +242,15 @@ def summation(a, axes=None):
 
 class MatMul(TensorOp):
     def compute(self, a, b):
+        z = a @ b
         return a @ b
 
     def gradient(self, out_grad, node):
-        lhm, rhm = node.inputs
-        dl = matmul(out_grad, rhm.transpose())
-        dr = matmul(lhm.transpose(), out_grad)
-        dl = summation(dl, axes = tuple(range(out_grad.ndim - lhm.ndim)))
-        dr = summation(dr, axes = tuple(range(out_grad.ndim - rhm.ndim)))
+        l, r = node.inputs
+        dl = out_grad @ r.transpose()
+        dr = l.transpose() @ out_grad
+        dl = summation(dl, axes=tuple(range(out_grad.ndim - l.ndim)))
+        dr = summation(dr, axes=tuple(range(out_grad.ndim - r.ndim)))
         return dl, dr
 
 
