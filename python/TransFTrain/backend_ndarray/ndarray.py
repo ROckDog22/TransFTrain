@@ -521,7 +521,7 @@ class NDArray:
             def tile(a, tile):
                 return a.as_strided(
                     (a.shape[0] // tile, a.shape[1] // tile, tile, tile),
-                    (a.shape[1] * tile, tile, self.shape[1], 1),
+                    (a.shape[1] * tile, tile, a.shape[1], 1),
                 )
 
             t = self.device.__tile_size__
@@ -633,22 +633,17 @@ def full(shape, fill_value, dtype="float32", device=None):
 def broadcast_to(array, new_shape):
     return array.broadcast_to(new_shape)
 
-
 def reshape(array, new_shape):
     return array.reshape(new_shape)
-
 
 def maximum(a, b):
     return a.maximum(b)
 
-
 def log(a):
     return a.log()
 
-
 def exp(a):
     return a.exp()
-
 
 def tanh(a):
     return a.tanh()
@@ -656,14 +651,12 @@ def tanh(a):
 def flip(a, axes):
     return a.flip(axes)
 
-
 def summation(a, axis=None, keepdims=False):
-    return a.sum(axis=axis, keepdims=keepdims)
-
+    # return a.sum(axis=axis, keepdims=keepdims)
+    return a.sum(axis=axis)
 
 def permute(a, axes):
     return a.permute(axes)
 
-
 def max(a, axis=None, keepdims=False):
-    return a.max(axis=axis, keepdims=keepdims)
+    return a.max(axis=axis, keepdims = keepdims)
