@@ -25,7 +25,7 @@ def one_iter_of_cifar10_training(dataloader, model, niter=1, loss_fn=train.nn.So
         if i >= niter:
             break
         i += 1
-    return correct/(y.shape[0]*niter), total_loss/(y.shape[0]*niter)
+    return correct/(y.shape[0]*niter), total_loss[0]/(y.shape[0]*niter)
 
 class TestResNet9andCifar10(unittest.TestCase):
     def test_resnet9_cpu(self):
@@ -46,6 +46,8 @@ class TestResNet9andCifar10(unittest.TestCase):
         [-0.2905612 , -0.4147861 ,  0.90268034,  0.46530387,  1.3335679 ,
             1.8534894 , -0.1867125 , -2.4298222 , -0.5344223 ,  4.362149  ]]) - y.numpy()) < 1e-2
 
+# 设置cuda使用的GPU
+# export CUDA_VISIBLE_DEVICES = 1
     @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_resnet9_cuda(self):
         device = train.cuda()

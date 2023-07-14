@@ -98,7 +98,6 @@ def add_scalar(a, scalar):
 
 class EWiseMul(TensorOp):
     def compute(self, a: NDArray, b: NDArray):
-        mid = a*b
         return a * b
 
     def gradient(self, out_grad: Tensor, node: Tensor):
@@ -308,7 +307,13 @@ class ReLU(TensorOp):
         return a.maximum(0)
 
     def gradient(self, out_grad: Tensor, node: Tensor):
-        return multiply(Tensor(node.realize_cached_data() > 0), out_grad)
+        # return multiply(Tensor(node.realize_cached_data() > 0), out_grad)
+        flag = array_api.array(
+            node.realize_cached_data() > 0,
+            dtype=node.dtype,
+            device=node.device,
+        )
+        return out_grad * Tensor.make_const(flag)
 
 def relu(a):
     return ReLU()(a)
