@@ -37,9 +37,9 @@ class TestSetitem(unittest.TestCase):
         compare_strides(_A, A)
         np.testing.assert_allclose(A.numpy(), _A, atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_setitem_ewise_case1_cpu(self):
-        device = nd.cuda()
+        device = train.cuda()
         lhs_shape, lhs_slices = ShapeAndSlices(4, 5, 6)[1:2, 0, 0]
         rhs_shape, rhs_slices = ShapeAndSlices(7, 7, 7)[1:2, 0, 0]
         _A = np.random.randn(*lhs_shape)
@@ -70,9 +70,9 @@ class TestSetitem(unittest.TestCase):
         compare_strides(_A, A)
         np.testing.assert_allclose(A.numpy(), _A, atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_setitem_ewise_case2_cpu(self):
-        device = nd.cuda()
+        device = train.cuda()
         lhs_shape, lhs_slices = ShapeAndSlices(4, 5, 6)[1:4:2, 0, 0]
         rhs_shape, rhs_slices = ShapeAndSlices(7, 7, 7)[1:3, 0, 0]
         _A = np.random.randn(*lhs_shape)
@@ -87,7 +87,7 @@ class TestSetitem(unittest.TestCase):
         compare_strides(_A, A)
         np.testing.assert_allclose(A.numpy(), _A, atol=1e-5, rtol=1e-5)
     
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_setitem_ewise_case3_cpu(self):
         device = nd.cpu()
         lhs_shape, lhs_slices = ShapeAndSlices(4, 5, 6)[1:4:2, 0, 0]
@@ -121,9 +121,9 @@ class TestSetitem(unittest.TestCase):
         compare_strides(_A, A)
         np.testing.assert_allclose(A.numpy(), _A, atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_setitem_ewise_case3_cuda(self):
-        device = nd.cuda()
+        device = train.cuda()
         lhs_shape, lhs_slices = ShapeAndSlices(4, 5, 6)[1:3, 2:5, 2:6]
         rhs_shape, rhs_slices = ShapeAndSlices(7, 7, 7)[:2, :3, :4]
         _A = np.random.randn(*lhs_shape)
@@ -154,9 +154,9 @@ class TestSetitem(unittest.TestCase):
         np.testing.assert_allclose(A.numpy(), _A, atol=1e-5, rtol=1e-5)
         compare_strides(_A, A)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_setitem_scalar_case1_cuda(self):
-        device = nd.cuda()
+        device = train.cuda()
         shape, slices = ShapeAndSlices(4, 5, 6)[1,    2,   3]
         _A = np.random.randn(*shape)
         A = nd.array(_A, device=device)
@@ -186,9 +186,9 @@ class TestSetitem(unittest.TestCase):
         np.testing.assert_allclose(A.numpy(), _A, atol=1e-5, rtol=1e-5)
         compare_strides(_A, A)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_setitem_scalar_case2_cuda(self):
-        device = nd.cuda()
+        device = train.cuda()
         shape, slices = ShapeAndSlices(4, 5, 6)[1:4,  2,   3]
         _A = np.random.randn(*shape)
         A = nd.array(_A, device=device)
@@ -220,9 +220,9 @@ class TestSetitem(unittest.TestCase):
         compare_strides(_A, A)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_setitem_scalar_case3_cuda(self):
-        device = nd.cuda()
+        device = train.cuda()
         shape, slices = ShapeAndSlices(4, 5, 6)[:4,  2:5, 3]
         _A = np.random.randn(*shape)
         A = nd.array(_A, device=device)
@@ -252,9 +252,9 @@ class TestSetitem(unittest.TestCase):
         compare_strides(_A, A)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_setitem_scalar_case4_cuda(self):
-        device = nd.cuda()
+        device = train.cuda()
         shape, slices = ShapeAndSlices(4, 5, 6)[1::2, 2:5, ::2]
         _A = np.random.randn(*shape)
         A = nd.array(_A, device=device)

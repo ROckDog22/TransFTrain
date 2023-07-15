@@ -60,7 +60,7 @@ class TestSequenceModel(unittest.TestCase):
                                 h_.sum().backward()
                                 np.testing.assert_allclose(model_.weight_ih.grad.detach().numpy().transpose(), model.W_ih.grad.numpy(), atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_rnn_cell_cuda(self):
         device = train.cuda()
         for batch_size in BATCH_SIZES:
@@ -131,7 +131,7 @@ class TestSequenceModel(unittest.TestCase):
                             h_.sum().backward()
                             np.testing.assert_allclose(model_.weight_ih.grad.detach().numpy().transpose(), model.W_ih.grad.numpy(), atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_lstm_cell_cuda(self):
         device = train.cuda()
         for batch_size in BATCH_SIZES:
@@ -206,7 +206,8 @@ class TestSequenceModel(unittest.TestCase):
                                         output_.sum().backward()
                                         np.testing.assert_allclose(model.rnn_cells[0].W_ih.grad.detach().numpy(), model_.weight_ih_l0.grad.numpy().transpose(), atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_rnn_cuda(self):
         device = train.cuda()
         for seq_length in SEQ_LENGTHS:
@@ -285,7 +286,7 @@ class TestSequenceModel(unittest.TestCase):
                                     output_.sum().backward()
                                     np.testing.assert_allclose(model.lstm_cells[0].W_ih.grad.detach().numpy(), model_.weight_ih_l0.grad.numpy().transpose(), atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_lstm_cuda(self):
         device = train.cuda()
         for seq_length in SEQ_LENGTHS:
@@ -363,7 +364,7 @@ class TestSequenceModel(unittest.TestCase):
                                         for p in model.parameters():
                                             assert p.grad is not None
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_language_model_implementation_cuda(self):
         device = train.cuda()
         for seq_length in SEQ_LENGTHS:
@@ -403,7 +404,7 @@ class TestSequenceModel(unittest.TestCase):
                                             assert p.grad is not None
 
 
-    def test_language_model_training_cpu(device):
+    def test_language_model_training_cpu(self):
         device = train.cpu()
         np.random.seed(0)
         corpus = train.data.Corpus("data/ptb", max_lines=20)
@@ -426,7 +427,8 @@ class TestSequenceModel(unittest.TestCase):
             np.testing.assert_allclose(5.388685, test_loss, atol=1e-5, rtol=1e-5)
 
 
-    def test_language_model_training_cuda(device):
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
+    def test_language_model_training_cuda(self):
         device = train.cuda()
         np.random.seed(0)
         corpus = train.data.Corpus("data/ptb", max_lines=20)

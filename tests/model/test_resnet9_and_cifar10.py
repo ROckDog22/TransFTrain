@@ -47,7 +47,7 @@ class TestResNet9andCifar10(unittest.TestCase):
             1.8534894 , -0.1867125 , -2.4298222 , -0.5344223 ,  4.362149  ]]) - y.numpy()) < 1e-2
 
 # 设置cuda使用的GPU
-# export CUDA_VISIBLE_DEVICES = 1
+# export CUDA_VISIBLE_DEVICES=1
     @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_resnet9_cuda(self):
         device = train.cuda()

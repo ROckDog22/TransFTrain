@@ -23,12 +23,12 @@ class TestReduceMax(unittest.TestCase):
             np.testing.assert_allclose(_A.max(axis=axis, keepdims=True), A.max(axis=axis).numpy(), atol=1e-5, rtol=1e-5)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_case1_cuda(self):
         for params in reduce_params:
             dims, axis = params['dims'], params['axis']
             _A = np.random.randn(*dims)
-            A = nd.array(_A, device=nd.cuda())   
+            A = nd.array(_A, device=train.cuda())   
             np.testing.assert_allclose(_A.max(axis=axis, keepdims=True), A.max(axis=axis).numpy(), atol=1e-5, rtol=1e-5)
 
 if "__main__" == __name__:

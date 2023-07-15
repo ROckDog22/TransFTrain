@@ -15,10 +15,10 @@ class TestScalarEq(unittest.TestCase):
         np.testing.assert_allclose(A >= C, (B >= C).numpy(), atol=1e-5, rtol=1e-5)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_case1_cuda(self):
         A = np.random.randn(5, 5)
-        B = nd.array(A, device=nd.cuda())
+        B = nd.array(A, device=train.cuda())
         C = A[0, 1].item()
         np.testing.assert_allclose(A >= C, (B >= C).numpy(), atol=1e-5, rtol=1e-5)
 

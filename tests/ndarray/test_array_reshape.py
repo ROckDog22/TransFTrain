@@ -34,12 +34,12 @@ def check_same_memory(original, view):
 
 class TestGPUArrayReshape(unittest.TestCase):
 # TODO test permute, broadcast_to, reshape, getitem, some combinations thereof    
-    @unittest.skip(not nd.cuda().enabled(), "No GPU")
+    @unittest.skip(not train.cuda().enabled(), "No GPU")
     def test_cuda_compact(self):
         for params in params: 
             shape, np_fn, nd_fn = params['shape'], params['np_fn'], params['nd_fn']
             _A = np.random.randint(low=0, high=10, size=shape)
-            A = nd.array(_A, device=nd.cuda())
+            A = nd.array(_A, device=train.cuda())
         
             lhs = nd_fn(A).compact()
             assert lhs.is_compact(), "array is not compact"

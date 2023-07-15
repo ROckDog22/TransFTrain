@@ -16,10 +16,10 @@ class TestEwiseExp(unittest.TestCase):
         np.testing.assert_allclose(np.exp(A), (B.exp()).numpy(), atol=1e-5, rtol=1e-5)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_case1_cuda(self):
         A = np.random.randn(5, 5)
-        B = nd.array(A, device=nd.cuda())
+        B = nd.array(A, device=train.cuda())
         np.testing.assert_allclose(np.exp(A), (B.exp()).numpy(), atol=1e-5, rtol=1e-5)
 
 
@@ -31,7 +31,7 @@ class TestEwiseExp(unittest.TestCase):
             np.testing.assert_allclose(np.exp(_A), train.exp(A).numpy(), atol=1e-5, rtol=1e-5)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_exp_cuda(self):
         device = train.cuda()
         for shape in GENERAL_SHAPES:

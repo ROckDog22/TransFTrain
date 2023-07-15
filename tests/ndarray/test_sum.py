@@ -19,7 +19,7 @@ class TestSum(unittest.TestCase):
     def test_case2(self):
         shape = (4, 4)
         _A = np.random.randint(low=0, high=10, size=shape)
-        A = nd.array(_A, device=nd.cuda())
+        A = nd.array(_A, device=train.cuda())
         lhs = A.permute((1,0)).compact()
         assert lhs.is_compact(), "array is not compact"
         rhs = _A.transpose()

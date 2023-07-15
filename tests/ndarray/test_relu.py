@@ -16,7 +16,7 @@ class TestRule(unittest.TestCase):
             A = train.Tensor(nd.array(_A), device=device)
             np.testing.assert_allclose(np.maximum(_A, 0), train.relu(A).numpy(), atol=1e-5, rtol=1e-5)
     
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_relu_cuda(self):
         device = train.cuda()
         for shape in GENERAL_SHAPES:

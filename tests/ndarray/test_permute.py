@@ -41,7 +41,7 @@ class TestPermute(unittest.TestCase):
     def test_case3(self):
         shape = (4, 4)
         _A = np.random.randint(low=0, high=10, size=shape)
-        A = nd.array(_A, device=nd.cuda())
+        A = nd.array(_A, device=train.cuda())
         lhs = A.permute((1,0)).compact()
         assert lhs.is_compact(), "array is not compact"
         rhs = _A.transpose()
@@ -65,7 +65,7 @@ class TestPermute(unittest.TestCase):
             check_same_memory(A, rhs)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_permute_cuda(self):
         permute_params = [
             {"dims": (4, 5, 6), "axes": (0, 1, 2)},
@@ -76,7 +76,7 @@ class TestPermute(unittest.TestCase):
             dims = params['dims']
             axes = params['axes']
             _A = np.random.randn(*dims)
-            A = nd.array(_A, device=nd.cuda())
+            A = nd.array(_A, device=train.cuda())
             lhs = np.transpose(_A, axes=axes)
             rhs = A.permute(axes)
             np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
@@ -100,7 +100,7 @@ class TestPermute(unittest.TestCase):
             compare_strides(lhs, rhs)
             check_same_memory(A, rhs)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_permute_cuda(self):
         permute_params = [
         {"dims": (4, 5, 6), "axes": (0, 1, 2)},
@@ -111,7 +111,7 @@ class TestPermute(unittest.TestCase):
             dims = params['dims']
             axes = params['axes']
             _A = np.random.randn(*dims)
-            A = nd.array(_A, device=nd.cuda())
+            A = nd.array(_A, device=train.cuda())
             lhs = np.transpose(_A, axes=axes)
             rhs = A.permute(axes)
             np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)

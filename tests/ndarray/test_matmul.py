@@ -29,13 +29,13 @@ class TestMatMul(unittest.TestCase):
             np.testing.assert_allclose((A @ B).numpy(), _A @ _B, rtol=1e-5, atol=1e-5)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_case1_cuda(self):
         for m, n, p in matmul_dims:
             _A = np.random.randn(m, n)
             _B = np.random.randn(n, p)
-            A = nd.array(_A, device=nd.cuda())
-            B = nd.array(_B, device=nd.cuda())
+            A = nd.array(_A, device=train.cuda())
+            B = nd.array(_B, device=train.cuda())
             np.testing.assert_allclose((A @ B).numpy(), _A @ _B, rtol=1e-5, atol=1e-5)
 
     def test_case2_cpu(self):
@@ -55,14 +55,14 @@ class TestMatMul(unittest.TestCase):
             np.testing.assert_allclose(lhs, rhs, atol=1e-5, rtol=1e-5)
 
 
-    # @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    # @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     # def test_case2_cuda(self):
     #     for m, n, p in matmul_tiled_shapes:
     #         device = nd.cpu()
     #         assert hasattr(device, "matmul_tiled")
     #         t = device.__tile_size__
-    #         A = nd.array(np.random.randn(m, n, t, t), device=nd.cuda())
-    #         B = nd.array(np.random.randn(n, p, t, t), device=nd.cuda())
+    #         A = nd.array(np.random.randn(m, n, t, t), device=train.cuda())
+    #         B = nd.array(np.random.randn(n, p, t, t), device=train.cuda())
     #         C = nd.NDArray.make((m, p, t, t), device=nd.cpu())
     #         device.matmul_tiled(A._handle, B._handle, C._handle, m*t, n*t, p*t)
 
@@ -83,7 +83,7 @@ class TestMatMul(unittest.TestCase):
             np.testing.assert_allclose(_A @ _B, (A @ B).numpy(), atol=1e-5, rtol=1e-5)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_matmul_cuda(self):
         device = train.cuda()
         for m,n,p in matmul_dims:

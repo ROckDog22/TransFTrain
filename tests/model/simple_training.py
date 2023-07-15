@@ -5,6 +5,8 @@ import TransFTrain.nn as nn
 from TransFTrain import backend_ndarray as nd
 from models import *
 import time
+from tqdm import trange
+from tqdm.auto import tqdm
 
 device = train.cpu()
 
@@ -28,9 +30,31 @@ def epoch_general_cifar10(dataloader, model, loss_fn=nn.SoftmaxLoss(), opt=None)
         avg_loss: average loss over dataset
     """
     np.random.seed(4)
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+
+    model.train()
+    if opt is None:
+        model.eval()
+
+    count = loss_sum = accuracy = 0
+    for batch in tqdm(dataloader, total=len(dataloader.dataset) // dataloader.batch_size):
+        images, labels = batch
+        images, labels = train.Tensor(images, device=model.device), train.Tensor(labels, device=model.device)
+
+        logits = model(images)
+        loss = loss_fn(logits, labels)
+
+        if opt is not None:
+            loss.backward()
+            opt.step()
+
+        count += images.shape[0]
+        loss_sum += loss.detach().numpy() * images.shape[0]
+        accuracy += (logits.detach().numpy().argmax(-1) == labels.detach().numpy()).sum()
+        
+    avg_loss = loss_sum / count
+    avg_accuracy = accuracy / count
+
+    return avg_accuracy, avg_loss  
 
 
 def train_cifar10(model, dataloader, n_epochs=1, optimizer=train.optim.Adam,
@@ -52,9 +76,21 @@ def train_cifar10(model, dataloader, n_epochs=1, optimizer=train.optim.Adam,
         avg_loss: average loss over dataset from last epoch of training
     """
     np.random.seed(4)
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+
+    optim = optimizer(model.parameters(), lr=lr, weight_decay=weight_decay)
+
+    for i in range(n_epochs):
+        start = time.time()
+        train_acc, train_loss = epoch_general_cifar10(dataloader, model, loss_fn(), optim)
+        end = time.time()
+        print(
+            f"Epoch {i}/{n_epochs - 1}", 
+            f"accuracy: {train_acc}", 
+            f"loss: {train_loss}",
+            f"time: {end - start:.3f}s",
+        )
+    
+    return train_acc, train_loss
 
 
 def evaluate_cifar10(model, dataloader, loss_fn=nn.SoftmaxLoss):
@@ -71,9 +107,12 @@ def evaluate_cifar10(model, dataloader, loss_fn=nn.SoftmaxLoss):
         avg_loss: average loss over dataset
     """
     np.random.seed(4)
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+
+    test_acc, test_loss = epoch_general_cifar10(dataloader, model, loss_fn(), opt=None)
+    print(f"accuracy: {test_acc}", f"loss: {test_loss}")
+
+    return test_acc, test_loss
+
 
 
 
@@ -99,9 +138,47 @@ def epoch_general_ptb(data, model, seq_len=40, loss_fn=nn.SoftmaxLoss(), opt=Non
         avg_loss: average loss over dataset
     """
     np.random.seed(4)
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+
+    model.train()
+    if opt is None:
+        model.eval()
+
+    count = loss_sum = accuracy = 0
+    last = None
+    for i in trange(0, data.shape[0] - 1, seq_len):
+        texts, labels = train.data.get_batch(data, i, seq_len, device=device, dtype=dtype)
+
+        logits, last = model(texts, last)
+        loss = loss_fn(logits, labels)
+
+        # need to "break" autograd graph to avoid super deep recursion
+        if isinstance(last, tuple):
+            last = tuple(
+                last_part.detach() for last_part in last
+            )
+        else:
+            last = last.detach()
+
+        if opt is not None:
+            loss.backward()
+            opt.step()
+
+            if clip is not None:
+                for param in opt.params:
+                    param.grad = train.Tensor(
+                        clip * param.grad.data / np.linalg.norm(param.grad.data),
+                        device=param.device,
+                        dtype=param.dtype,
+                    )
+
+        count += labels.shape[0]
+        loss_sum += loss.detach().numpy().squeeze() * labels.shape[0]
+        accuracy += (logits.detach().numpy().argmax(-1) == labels.detach().numpy()).sum()
+        
+    avg_loss = loss_sum / count
+    avg_accuracy = accuracy / count
+
+    return avg_accuracy, avg_loss   
 
 
 def train_ptb(model, data, seq_len=40, n_epochs=1, optimizer=train.optim.SGD,
@@ -126,9 +203,30 @@ def train_ptb(model, data, seq_len=40, n_epochs=1, optimizer=train.optim.SGD,
         avg_loss: average loss over dataset from last epoch of training
     """
     np.random.seed(4)
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+
+    optim = optimizer(model.parameters(), lr=lr, weight_decay=weight_decay)
+
+    for i in range(n_epochs):
+        start = time.time()
+        train_acc, train_loss = epoch_general_ptb(
+            data, 
+            model,
+            loss_fn=loss_fn(), 
+            opt=optim, 
+            clip=clip,
+            seq_len=seq_len,
+            device=device,
+            dtype=dtype,
+        )
+        end = time.time()
+        print(
+            f"Epoch {i}/{n_epochs - 1}", 
+            f"accuracy: {train_acc}", 
+            f"loss: {train_loss}",
+            f"time: {end - start:.3f}s",
+        )
+    
+    return train_acc, train_loss
 
 
 def evaluate_ptb(model, data, seq_len=40, loss_fn=nn.SoftmaxLoss,
@@ -147,9 +245,18 @@ def evaluate_ptb(model, data, seq_len=40, loss_fn=nn.SoftmaxLoss,
         avg_loss: average loss over dataset
     """
     np.random.seed(4)
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+    test_acc, test_loss = epoch_general_ptb(
+            data, 
+            model,
+            loss_fn=loss_fn(), 
+            opt=None,
+            seq_len=seq_len,
+            device=device,
+            dtype=dtype,
+        )
+    print(f"accuracy: {test_acc}", f"loss: {test_loss}")
+    
+    return test_acc, test_loss
 
 
 if __name__ == "__main__":

@@ -49,11 +49,11 @@ class TestBroadcast_to(unittest.TestCase):
         np.testing.assert_allclose(lhs.numpy(), rhs, atol=1e-5)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_case4(self):
         shape = (4, 1, 4)
         _A = np.random.randint(low=0, high=10, size=shape)
-        A = nd.array(_A, device=nd.cuda())
+        A = nd.array(_A, device=train.cuda())
         lhs = A.broadcast_to((4,5,4))
         lhs = lhs.compact()
         assert lhs.is_compact(), "array is not compact"
@@ -76,7 +76,7 @@ class TestBroadcast_to(unittest.TestCase):
             compare_strides(lhs, rhs)
             check_same_memory(A, rhs)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_broadcast_to_cuda(self):
         broadcast_params = [
             {"from_shape": (1, 3, 4), "to_shape": (6, 3, 4)},
@@ -84,7 +84,7 @@ class TestBroadcast_to(unittest.TestCase):
         for params in broadcast_params:
             from_shape, to_shape = params['from_shape'], params['to_shape']
             _A = np.random.randn(*from_shape)
-            A = nd.array(_A, device=nd.cuda())
+            A = nd.array(_A, device=train.cuda())
             lhs = np.broadcast_to(_A, shape=to_shape)
             rhs = A.broadcast_to(to_shape)
             np.testing.assert_allclose(lhs, rhs.numpy(), atol=1e-5, rtol=1e-5)
@@ -99,7 +99,7 @@ class TestBroadcast_to(unittest.TestCase):
             A = train.Tensor(nd.array(_A), device=device)
             np.testing.assert_allclose(np.broadcast_to(_A, shape_to), train.broadcast_to(A, shape_to).numpy(), atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_broadcast_to_cuda(self):
         device = train.cuda()
         for shape, shape_to in BROADCAST_SHAPES:

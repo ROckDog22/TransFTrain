@@ -15,10 +15,10 @@ class TestScalarDiv(unittest.TestCase):
         B = nd.array(A, device=nd.cpu())
         np.testing.assert_allclose(A / 5., (B / 5.).numpy(), atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_case1_cuda(self):
         A = np.random.randn(5, 5)
-        B = nd.array(A, device=nd.cuda())
+        B = nd.array(A, device=train.cuda())
         np.testing.assert_allclose(A / 5., (B / 5.).numpy(), atol=1e-5, rtol=1e-5)
 
     def test_scalar_fn_cpu(self):
@@ -30,7 +30,7 @@ class TestScalarDiv(unittest.TestCase):
             A = train.Tensor(nd.array(_A), device=device)
             np.testing.assert_allclose(fn(_A, _B), fn(A, _B).numpy(), atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_scalar_fn_cuda(self):
         device = train.cuda()
         fn = lambda a, b: a / b

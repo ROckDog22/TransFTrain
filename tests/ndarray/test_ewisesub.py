@@ -22,14 +22,14 @@ class TestEwiseSub(unittest.TestCase):
         np.testing.assert_allclose(fn(_A, _B), fn(A, B).numpy(), atol=1e-5, rtol=1e-5)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_case1_cuda(self):
         shape = (1, 1, 1)
         fn = lambda a, b: a - b
         _A = np.random.randn(*shape)
         _B = np.random.randn(*shape)
-        A = nd.array(_A, device= nd.cuda())
-        B = nd.array(_B, device=nd.cuda())
+        A = nd.array(_A, device= train.cuda())
+        B = nd.array(_B, device=train.cuda())
         np.testing.assert_allclose(fn(_A, _B), fn(A, B).numpy(), atol=1e-5, rtol=1e-5)
 
     def test_case2_cpu(self):
@@ -42,14 +42,14 @@ class TestEwiseSub(unittest.TestCase):
         np.testing.assert_allclose(fn(_A, _B), fn(A, B).numpy(), atol=1e-5, rtol=1e-5)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_case2_cuda(self):
         shape = (4, 5, 6)
         fn = lambda a, b: a - b
         _A = np.random.randn(*shape)
         _B = np.random.randn(*shape)
-        A = nd.array(_A, device= nd.cuda())
-        B = nd.array(_B, device=nd.cuda())
+        A = nd.array(_A, device= train.cuda())
+        B = nd.array(_B, device=train.cuda())
         np.testing.assert_allclose(fn(_A, _B), fn(A, B).numpy(), atol=1e-5, rtol=1e-5)
 
 
@@ -65,7 +65,7 @@ class TestEwiseSub(unittest.TestCase):
 
 
         
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_ewise_fn_cpu(self):
         device = train.cuda()
         fn = lambda a, b: a - b

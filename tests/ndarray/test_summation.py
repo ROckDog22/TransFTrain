@@ -45,7 +45,7 @@ class TestStack(unittest.TestCase):
             A = train.Tensor(nd.array(_A), device=device)
             np.testing.assert_allclose(np.sum(_A, axes), train.summation(A, axes=axes).numpy(), atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_summation_cuda(self):
         device = train.cuda()
         for shape, axes in SUMMATION_PARAMETERS:
@@ -60,7 +60,7 @@ class TestStack(unittest.TestCase):
             A = train.Tensor(nd.array(_A), device=device)
             backward_check(train.summation, A, axes=axes)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_summation_backward_cuda(self):
         device = train.cuda()
         for shape, axes in SUMMATION_PARAMETERS:

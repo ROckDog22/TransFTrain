@@ -95,7 +95,7 @@ class TestStack(unittest.TestCase):
             out_t = torch.stack(A_t, dim=axis)
             np.testing.assert_allclose(out_t.numpy(), out.numpy(), atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_stack_cuda(self):
         device = train.cuda()
         for shape, axis, l in STACK_PARAMETERS:
@@ -119,7 +119,7 @@ class TestStack(unittest.TestCase):
             for i in range(l):
                 np.testing.assert_allclose(A_t[i].grad.numpy(), A[i].grad.numpy(), atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_stack_backward_cuda(self):
         device = train.cuda()
         for shape, axis, l in STACK_PARAMETERS:
@@ -142,7 +142,7 @@ class TestStack(unittest.TestCase):
             backward_check_post(train.stack, [get_tensor(shape) for _ in range(n)], axis=axis)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_stack_backward_cuda_post(self):
         np.random.seed(0)
         device = train.cuda()
@@ -168,7 +168,7 @@ class TestStack(unittest.TestCase):
             rhs = train.stack(to_stack_ndl, axis=axis)
 
 
-    @unittest.skipIf(not nd.cuda().enabled(), "NO GPU")
+    @unittest.skipIf(not train.cuda().enabled(), "NO GPU")
     def test_stack_backward_cuda_post1(self):
         np.random.seed(0)
         device = train.cuda()
