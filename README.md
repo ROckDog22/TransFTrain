@@ -1,7 +1,9 @@
 # TransFTrain ![](https://img.shields.io/badge/version-v0.1.0-brightgreen)
 a simple train framework for personal pytorch learning
 
+![TransFTrain](https://github.com/Vooolta/TransFTrain/blob/master/img/%E5%9B%BE%E7%89%87%201.png?raw=true)
 # use TransFTrain in main.ipynb
+
 ## Train a machine learning model
 ### import dependencies
 ```bash
